@@ -1,0 +1,2026 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOUSSOUX Configurator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Barlow', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            background: #111;
+            border-bottom: 1px solid #222;
+            height: 60px;
+        }
+
+        .logo {
+            font-family: 'Fjalla One', sans-serif;
+            font-size: 24px;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Barlow', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #333;
+            color: #fff;
+        }
+
+        .btn-outline:hover {
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+
+        /* Left Panel - 3D Preview */
+        .preview-panel {
+            width: 280px;
+            background: #111;
+            border-right: 1px solid #222;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-title {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .preview-3d-container {
+            background: #1a1a1a;
+            border-radius: 12px;
+            height: 300px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #222;
+        }
+
+        .preview-3d-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .preview-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .expand-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* View Selector */
+        .view-selector {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .view-btn {
+            flex: 1;
+            min-width: 70px;
+            padding: 12px 8px;
+            background: #1a1a1a;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            color: #888;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .view-btn:hover {
+            background: #222;
+            color: #fff;
+        }
+
+        .view-btn.active {
+            border-color: #00d4ff;
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .view-btn svg {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Product Selector */
+        .product-selector {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+            border: 1px solid #222;
+        }
+
+        .product-selector-header {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .product-display {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .product-arrow {
+            background: transparent;
+            border: 1px solid #333;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .product-arrow:hover {
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        .product-arrow:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .product-info {
+            flex: 1;
+            text-align: center;
+        }
+
+        .product-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .product-type {
+            font-size: 10px;
+            color: #666;
+        }
+
+        /* Center - Editor Canvas */
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+        }
+
+        .editor-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            background: #f5f5f5;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .zoom-btn {
+            width: 36px;
+            height: 36px;
+            background: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            color: #333;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .zoom-btn:hover {
+            background: #f5f5f5;
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        #zoom-level {
+            color: #333;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .editor-canvas-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        #editor-canvas {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+        }
+
+        /* Right Panel - Layers & Tools */
+        .tools-panel {
+            width: 320px;
+            background: #111;
+            border-left: 1px solid #222;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tools-tabs {
+            display: flex;
+            border-bottom: 1px solid #222;
+        }
+
+        .tool-tab {
+            flex: 1;
+            padding: 16px 8px;
+            background: transparent;
+            border: none;
+            color: #666;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tool-tab:hover {
+            color: #fff;
+            background: #1a1a1a;
+        }
+
+        .tool-tab.active {
+            color: #00d4ff;
+            border-bottom-color: #00d4ff;
+        }
+
+        .tool-tab svg {
+            width: 20px;
+            height: 20px;
+            margin-bottom: 4px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .tools-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        /* Layers Section */
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .layers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .layer-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            border: 1px solid #222;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .layer-item:hover {
+            border-color: #333;
+        }
+
+        .layer-item.active {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .layer-preview {
+            width: 40px;
+            height: 40px;
+            background: #222;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .layer-info {
+            flex: 1;
+        }
+
+        .layer-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .layer-name input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            width: 100%;
+            outline: none;
+        }
+
+        .layer-type {
+            font-size: 11px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .layer-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .layer-action-btn {
+            width: 28px;
+            height: 28px;
+            background: transparent;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .layer-action-btn:hover {
+            background: #222;
+            color: #fff;
+        }
+
+        .add-layer-btn {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 2px dashed #333;
+            border-radius: 8px;
+            color: #666;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .add-layer-btn:hover {
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        /* Tools Menu */
+        .tools-menu {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tools-menu.active {
+            display: flex;
+        }
+
+        .tool-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: #1a1a1a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tool-option:hover {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .tool-option svg {
+            width: 20px;
+            height: 20px;
+            color: #888;
+        }
+
+        .tool-option span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Text Editor Panel */
+        .text-editor-panel {
+            display: none;
+        }
+
+        .text-editor-panel.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+            font-family: 'Barlow', sans-serif;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        .color-picker-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .color-swatch {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+
+        .color-swatch.active {
+            border-color: #fff;
+        }
+
+        /* Footer Actions */
+        .footer-actions {
+            padding: 16px;
+            border-top: 1px solid #222;
+            display: flex;
+            gap: 8px;
+        }
+
+        .footer-actions .btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            border-color: #00d4ff;
+        }
+
+        .theme-toggle-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .theme-toggle .sun-icon {
+            display: none;
+        }
+
+        .theme-toggle .moon-icon {
+            display: block;
+        }
+
+        /* Light theme for work areas */
+        body.light-mode .preview-3d-container {
+            background: #f5f5f5;
+            border-color: #ddd;
+        }
+
+        body.light-mode .preview-badge {
+            background: rgba(0, 212, 255, 0.15);
+        }
+
+        /* Light Mode - Header */
+        body.light-mode {
+            background: #f5f5f5;
+        }
+
+        body.light-mode .header {
+            background: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        body.light-mode .btn-outline {
+            border-color: #e0e0e0;
+            color: #333;
+        }
+
+        body.light-mode .btn-outline:hover {
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        /* Light Mode - Left Panel */
+        body.light-mode .preview-panel {
+            background: #ffffff;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        body.light-mode .preview-title {
+            color: #666;
+        }
+
+        body.light-mode .preview-3d-container {
+            background: #f8f8f8;
+            border-color: #e0e0e0;
+        }
+
+        body.light-mode .view-btn {
+            background: #f8f8f8;
+            border-color: #e0e0e0;
+            color: #666;
+        }
+
+        body.light-mode .view-btn:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        body.light-mode .view-btn.active {
+            border-color: #00d4ff;
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        body.light-mode .product-selector {
+            background: #f8f8f8;
+            border-color: #e0e0e0;
+        }
+
+        body.light-mode .product-selector-header {
+            color: #666;
+        }
+
+        body.light-mode .product-arrow {
+            border-color: #e0e0e0;
+            color: #333;
+        }
+
+        body.light-mode .product-arrow:hover {
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        body.light-mode .product-name {
+            color: #333;
+        }
+
+        body.light-mode .product-type {
+            color: #666;
+        }
+
+        /* Light Mode - Center Panel */
+        body.light-mode .editor-panel {
+            background: #ffffff;
+        }
+
+        body.light-mode .editor-canvas-container {
+            background: #ffffff;
+        }
+
+        body.light-mode #editor-canvas {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        body.light-mode .editor-toolbar {
+            background: #f8f8f8;
+            border-bottom-color: #e0e0e0;
+        }
+
+        body.light-mode .editor-toolbar span {
+            color: #666;
+        }
+
+        body.light-mode .zoom-btn {
+            background: #fff;
+            border-color: #ddd;
+            color: #333;
+        }
+
+        body.light-mode .zoom-btn:hover {
+            background: #f5f5f5;
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        body.light-mode #zoom-level {
+            color: #333;
+        }
+
+        /* Light Mode - Right Panel */
+        body.light-mode .tools-panel {
+            background: #ffffff;
+            border-left: 1px solid #e0e0e0;
+        }
+
+        body.light-mode .tools-tabs {
+            border-bottom-color: #e0e0e0;
+        }
+
+        body.light-mode .tool-tab {
+            color: #999;
+        }
+
+        body.light-mode .tool-tab:hover {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        body.light-mode .tool-tab.active {
+            background: rgba(0, 212, 255, 0.05);
+            color: #00d4ff;
+            border-bottom-color: #00d4ff;
+        }
+
+        body.light-mode .section-title {
+            color: #666;
+        }
+
+        body.light-mode .layer-item {
+            background: #f8f8f8;
+            border-color: #e0e0e0;
+        }
+
+        body.light-mode .layer-item:hover {
+            background: #f0f0f0;
+        }
+
+        body.light-mode .layer-item.active {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        body.light-mode .layer-preview {
+            background: #e8e8e8;
+            color: #333;
+        }
+
+        body.light-mode .layer-name input {
+            color: #333;
+            background: transparent;
+        }
+
+        body.light-mode .layer-type {
+            color: #999;
+        }
+
+        body.light-mode .layer-action-btn {
+            border-color: #e0e0e0;
+            color: #666;
+        }
+
+        body.light-mode .layer-action-btn:hover {
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        body.light-mode .add-layer-btn {
+            background: #f8f8f8;
+            border-color: #e0e0e0;
+            color: #333;
+        }
+
+        body.light-mode .add-layer-btn:hover {
+            background: #f0f0f0;
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        body.light-mode .tool-option {
+            background: #f8f8f8;
+            border-color: #e0e0e0;
+            color: #333;
+        }
+
+        body.light-mode .tool-option:hover {
+            background: #f0f0f0;
+            border-color: #00d4ff;
+        }
+
+        body.light-mode .tools-menu {
+            background: #ffffff;
+        }
+
+        body.light-mode .text-editor-panel {
+            background: #ffffff;
+        }
+
+        body.light-mode .input-label {
+            color: #666;
+        }
+
+        body.light-mode .text-input {
+            background: #f8f8f8;
+            border-color: #e0e0e0;
+            color: #333;
+        }
+
+        body.light-mode .text-input:focus {
+            border-color: #00d4ff;
+        }
+
+        body.light-mode .footer-actions {
+            border-top-color: #e0e0e0;
+        }
+
+        /* Light Mode - Theme Toggle */
+        body.light-mode .theme-toggle {
+            background: #ffffff;
+            border-color: #ddd;
+            color: #333;
+        }
+
+        body.light-mode .theme-toggle:hover {
+            border-color: #7b2cbf;
+        }
+
+        body.light-mode .theme-toggle .sun-icon {
+            display: block;
+        }
+
+        body.light-mode .theme-toggle .moon-icon {
+            display: none;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #111;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444;
+        }
+
+        /* Modal for expanded 3D view */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            width: 80%;
+            height: 80%;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">DOUSSOUX CONFIGURATOR</div>
+        <div class="header-actions">
+            <button class="btn btn-outline">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                    <polyline points="17,21 17,13 7,13 7,21"/>
+                    <polyline points="7,3 7,8 15,8"/>
+                </svg>
+                Guardar
+            </button>
+            <button class="btn btn-outline">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="18" cy="5" r="3"/>
+                    <circle cx="6" cy="12" r="3"/>
+                    <circle cx="18" cy="19" r="3"/>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+                Compartir
+            </button>
+            <button class="btn btn-primary" id="add-to-cart">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="9" cy="21" r="1"/>
+                    <circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                </svg>
+                Añadir al carrito
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Panel - 3D Preview -->
+        <aside class="preview-panel">
+            <div class="preview-title">Vista previa 3D</div>
+            <div class="preview-3d-container" id="preview-3d">
+                <span class="preview-badge">3D</span>
+                <button class="expand-btn" id="expand-3d">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <polyline points="15,3 21,3 21,9"/>
+                        <polyline points="9,21 3,21 3,15"/>
+                        <line x1="21" y1="3" x2="14" y2="10"/>
+                        <line x1="3" y1="21" x2="10" y2="14"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="view-selector">
+                <button class="view-btn active" data-view="front">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="4" y="2" width="16" height="20" rx="2"/>
+                    </svg>
+                    FRONT
+                </button>
+                <button class="view-btn" data-view="back">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="4" y="2" width="16" height="20" rx="2"/>
+                        <line x1="12" y1="6" x2="12" y2="18" stroke-dasharray="2"/>
+                    </svg>
+                    BACK
+                </button>
+                <button class="view-btn" data-view="sleeve-left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M6 4 L18 4 L20 20 L4 20 Z"/>
+                    </svg>
+                    SLEEVE L
+                </button>
+                <button class="view-btn" data-view="sleeve-right">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M6 4 L18 4 L20 20 L4 20 Z" transform="scale(-1, 1) translate(-24, 0)"/>
+                    </svg>
+                    SLEEVE R
+                </button>
+                <button class="view-btn" data-view="neck">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <ellipse cx="12" cy="12" rx="8" ry="4"/>
+                    </svg>
+                    NECK
+                </button>
+            </div>
+
+            <!-- Product Selector -->
+            <div class="product-selector">
+                <div class="product-selector-header">Producto</div>
+                <div class="product-display">
+                    <button class="product-arrow" id="prevProductBtn" onclick="previousProduct()">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polyline points="15,18 9,12 15,6"/>
+                        </svg>
+                    </button>
+                    <div class="product-info">
+                        <div class="product-name" id="currentProductName">Camiseta Corporate</div>
+                        <div class="product-type" id="currentProductType">Jersey personalizado</div>
+                    </div>
+                    <button class="product-arrow" id="nextProductBtn" onclick="nextProduct()">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polyline points="9,18 15,12 9,6"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center - Editor Canvas -->
+        <main class="editor-panel">
+            <div class="editor-toolbar">
+                <div class="zoom-controls">
+                    <button class="zoom-btn" id="zoom-out">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            <line x1="8" y1="11" x2="14" y2="11"/>
+                        </svg>
+                    </button>
+                    <span id="zoom-level">100%</span>
+                    <button class="zoom-btn" id="zoom-in">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            <line x1="11" y1="8" x2="11" y2="14"/>
+                            <line x1="8" y1="11" x2="14" y2="11"/>
+                        </svg>
+                    </button>
+                </div>
+                <div style="font-size: 14px; color: #333;">
+                    CAMISETA DOUSSOUX <span style="color: #00d4ff;">CORPORATE</span>
+                </div>
+                <div class="zoom-controls">
+                    <button class="zoom-btn" id="undo">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M3 7v6h6"/>
+                            <path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
+                        </svg>
+                    </button>
+                    <button class="zoom-btn" id="redo">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M21 7v6h-6"/>
+                            <path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="editor-canvas-container">
+                <canvas id="editor-canvas"></canvas>
+            </div>
+        </main>
+
+        <!-- Right Panel - Tools -->
+        <aside class="tools-panel">
+            <div class="tools-tabs">
+                <button class="tool-tab active" data-tab="layers">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12,2 2,7 12,12 22,7"/>
+                        <polyline points="2,17 12,22 22,17"/>
+                        <polyline points="2,12 12,17 22,12"/>
+                    </svg>
+                    Layers
+                </button>
+                <button class="tool-tab" data-tab="uploads">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                        <polyline points="17,8 12,3 7,8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    Uploads
+                </button>
+                <button class="tool-tab" data-tab="cliparts">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21,15 16,10 5,21"/>
+                    </svg>
+                    Cliparts
+                </button>
+                <button class="tool-tab" data-tab="text">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="4,7 4,4 20,4 20,7"/>
+                        <line x1="9" y1="20" x2="15" y2="20"/>
+                        <line x1="12" y1="4" x2="12" y2="20"/>
+                    </svg>
+                    Text
+                </button>
+            </div>
+
+            <div class="tools-content">
+                <!-- Layers Tab -->
+                <div class="tab-content active" id="tab-layers">
+                    <div class="section-title">
+                        Design elements
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <line x1="4" y1="21" x2="4" y2="14"/>
+                            <line x1="4" y1="10" x2="4" y2="3"/>
+                            <line x1="12" y1="21" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12" y2="3"/>
+                            <line x1="20" y1="21" x2="20" y2="16"/>
+                            <line x1="20" y1="12" x2="20" y2="3"/>
+                        </svg>
+                    </div>
+                    <div class="layers-list" id="layers-list">
+                        <!-- Layers will be added here dynamically -->
+                    </div>
+                    <button class="add-layer-btn" id="add-layer">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="16"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                        </svg>
+                        Añadir elemento
+                    </button>
+                </div>
+
+                <!-- Tools Menu (shown when adding new element) -->
+                <div class="tools-menu" id="tools-menu">
+                    <div class="section-title">Añadir elemento</div>
+                    <div class="tool-option" data-tool="text">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="4,7 4,4 20,4 20,7"/>
+                            <line x1="9" y1="20" x2="15" y2="20"/>
+                            <line x1="12" y1="4" x2="12" y2="20"/>
+                        </svg>
+                        <span>Texto</span>
+                    </div>
+                    <div class="tool-option" data-tool="upload">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                            <polyline points="17,8 12,3 7,8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <span>Subir imagen</span>
+                    </div>
+                    <div class="tool-option" data-tool="clipart">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21,15 16,10 5,21"/>
+                        </svg>
+                        <span>Clipart</span>
+                    </div>
+                    <div class="tool-option" data-tool="number">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 17l6-12h1l6 12"/>
+                            <line x1="7" y1="13" x2="17" y2="13"/>
+                        </svg>
+                        <span>Número</span>
+                    </div>
+                </div>
+
+                <!-- Text Editor Panel -->
+                <div class="text-editor-panel" id="text-editor">
+                    <div class="section-title">Editar texto</div>
+                    <div class="input-group">
+                        <label class="input-label">Texto</label>
+                        <input type="text" class="text-input" id="text-content" placeholder="Tu texto aquí...">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Color</label>
+                        <div class="color-picker-row">
+                            <div class="color-swatch active" style="background: #ffffff" data-color="#ffffff"></div>
+                            <div class="color-swatch" style="background: #000000" data-color="#000000"></div>
+                            <div class="color-swatch" style="background: #00d4ff" data-color="#00d4ff"></div>
+                            <div class="color-swatch" style="background: #7b2cbf" data-color="#7b2cbf"></div>
+                            <div class="color-swatch" style="background: #F2D953" data-color="#F2D953"></div>
+                            <div class="color-swatch" style="background: #ff4444" data-color="#ff4444"></div>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Tamaño</label>
+                        <input type="range" id="text-size" min="12" max="120" value="48" style="width: 100%">
+                    </div>
+                </div>
+
+                <!-- Uploads Tab -->
+                <div class="tab-content" id="tab-uploads">
+                    <div class="section-title">Subir imágenes</div>
+                    <div class="tool-option" id="upload-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                            <polyline points="17,8 12,3 7,8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <span>Desde tu dispositivo</span>
+                    </div>
+                    <input type="file" id="file-input" accept="image/*" style="display: none;">
+                </div>
+
+                <!-- Cliparts Tab -->
+                <div class="tab-content" id="tab-cliparts">
+                    <div class="section-title">Cliparts</div>
+                    <p style="color: #666; font-size: 13px;">Próximamente: librería de cliparts DOUSSOUX</p>
+                </div>
+
+                <!-- Text Tab -->
+                <div class="tab-content" id="tab-text">
+                    <div class="section-title">Añadir texto</div>
+                    <div class="tool-option" id="add-text-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="4,7 4,4 20,4 20,7"/>
+                            <line x1="9" y1="20" x2="15" y2="20"/>
+                            <line x1="12" y1="4" x2="12" y2="20"/>
+                        </svg>
+                        <span>Añadir nuevo texto</span>
+                    </div>
+                    <div class="tool-option" id="add-number-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 17l6-12h1l6 12"/>
+                        </svg>
+                        <span>Añadir número</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-actions">
+                <button class="btn btn-outline" id="preview-btn">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    Preview
+                </button>
+                <button class="btn btn-primary" id="download-btn">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                        <polyline points="7,10 12,15 17,10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Exportar
+                </button>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="theme-toggle">
+        <span class="theme-toggle-icon">
+            <svg class="moon-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+            </svg>
+            <svg class="sun-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+        </span>
+        <span class="theme-toggle-label" id="theme-label">DARK</span>
+    </button>
+
+    <!-- Modal for expanded 3D view -->
+    <div class="modal-overlay" id="modal-3d">
+        <div class="modal-content">
+            <button class="modal-close" id="close-modal">&times;</button>
+            <div id="modal-3d-container" style="width: 100%; height: 100%;"></div>
+        </div>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Fabric.js for 2D canvas editing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    
+    <script>
+        // ========================================
+        // DOUSSOUX CONFIGURATOR - Main Script
+        // ========================================
+
+        // Global state
+        const state = {
+            currentView: 'front',
+            currentProductIndex: 0,
+            layers: [],
+            selectedLayer: null,
+            zoom: 1,
+            textColor: '#ffffff',
+            fontSize: 48
+        };
+
+        // Products Database
+        const PRODUCTS = [
+            {
+                id: 'jersey-corporate',
+                name: 'Camiseta Corporate',
+                type: 'Jersey personalizado',
+                views: {
+                    front: './assets/front.png',
+                    back: './assets/back.png',
+                    'sleeve-left': './assets/sleeve_1.png',
+                    'sleeve-right': './assets/sleeve_2.png',
+                    neck: './assets/neck.png'
+                }
+            },
+            {
+                id: 'polo-classic',
+                name: 'Polo Classic',
+                type: 'Polo personalizado',
+                views: {
+                    front: './assets/polo-front.png',
+                    back: './assets/polo-back.png',
+                    'sleeve-left': './assets/polo-sleeve-left.png',
+                    'sleeve-right': './assets/polo-sleeve-right.png',
+                    neck: './assets/polo-neck.png'
+                }
+            },
+            {
+                id: 'hoodie-premium',
+                name: 'Hoodie Premium',
+                type: 'Sudadera personalizada',
+                views: {
+                    front: './assets/hoodie-front.png',
+                    back: './assets/hoodie-back.png',
+                    'sleeve-left': './assets/hoodie-sleeve-left.png',
+                    'sleeve-right': './assets/hoodie-sleeve-right.png',
+                    neck: './assets/hoodie-neck.png'
+                }
+            }
+        ];
+
+        // Product Management Functions
+        function previousProduct() {
+            if (state.currentProductIndex > 0) {
+                state.currentProductIndex--;
+                updateProductDisplay();
+                loadProductView();
+            }
+        }
+
+        function nextProduct() {
+            if (state.currentProductIndex < PRODUCTS.length - 1) {
+                state.currentProductIndex++;
+                updateProductDisplay();
+                loadProductView();
+            }
+        }
+
+        function updateProductDisplay() {
+            const product = PRODUCTS[state.currentProductIndex];
+            document.getElementById('currentProductName').textContent = product.name;
+            document.getElementById('currentProductType').textContent = product.type;
+            
+            // Update button states
+            document.getElementById('prevProductBtn').disabled = state.currentProductIndex === 0;
+            document.getElementById('nextProductBtn').disabled = state.currentProductIndex === PRODUCTS.length - 1;
+        }
+
+        function loadProductView() {
+            const product = PRODUCTS[state.currentProductIndex];
+            const viewPath = product.views[state.currentView];
+            
+            // Load background image for current view
+            fabricCanvas.clear();
+            fabricCanvas.backgroundColor = '#ffffff';
+            
+            fabric.Image.fromURL(viewPath, function(img) {
+                const scale = Math.min(
+                    fabricCanvas.width / img.width,
+                    fabricCanvas.height / img.height
+                ) * 0.9;
+                
+                img.scale(scale);
+                img.set({
+                    left: fabricCanvas.width / 2,
+                    top: fabricCanvas.height / 2,
+                    originX: 'center',
+                    originY: 'center',
+                    selectable: false,
+                    evented: false,
+                    name: 'shirtBackground'
+                });
+                
+                fabricCanvas.add(img);
+                fabricCanvas.sendToBack(img);
+                fabricCanvas.renderAll();
+            }, {crossOrigin: 'anonymous'});
+        }
+
+        // Initialize Fabric.js canvas
+        const fabricCanvas = new fabric.Canvas('editor-canvas', {
+            width: 600,
+            height: 700,
+            backgroundColor: '#ffffff'
+        });
+
+        // Initialize product display
+        updateProductDisplay();
+        loadProductView();
+
+        // ========================================
+        // THREE.JS 3D PREVIEW
+        // ========================================
+        let scene, camera, renderer, shirtMesh;
+
+        function init3DPreview() {
+            const container = document.getElementById('preview-3d');
+            const width = container.clientWidth;
+            const height = container.clientHeight - 40;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf5f5f5); // Light mode default
+
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+            camera.position.z = 3;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            container.appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(1, 1, 1);
+            scene.add(directionalLight);
+
+            // Create simple shirt geometry (cylinder approximation for now)
+            const geometry = new THREE.CylinderGeometry(0.8, 1, 2, 32);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: 0x1a1a1a,
+                roughness: 0.8,
+                metalness: 0.1
+            });
+            shirtMesh = new THREE.Mesh(geometry, material);
+            scene.add(shirtMesh);
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                shirtMesh.rotation.y += 0.005;
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // Mouse interaction for rotation
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+
+            container.addEventListener('mousedown', (e) => {
+                isDragging = true;
+            });
+
+            container.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaX = e.clientX - previousMousePosition.x;
+                    shirtMesh.rotation.y += deltaX * 0.01;
+                }
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            container.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+        }
+
+        // ========================================
+        // LAYER MANAGEMENT
+        // ========================================
+        function addLayer(type, content, options = {}) {
+            const layer = {
+                id: Date.now(),
+                type: type,
+                content: content,
+                fabricObject: null,
+                ...options
+            };
+
+            if (type === 'text') {
+                const text = new fabric.IText(content || 'PLAYER', {
+                    left: 250,
+                    top: 200,
+                    fontSize: state.fontSize,
+                    fill: state.textColor,
+                    fontFamily: 'Barlow',
+                    fontWeight: '600'
+                });
+                fabricCanvas.add(text);
+                fabricCanvas.setActiveObject(text);
+                layer.fabricObject = text;
+
+                // Listen for text changes
+                text.on('changed', () => {
+                    updateLayerDisplay();
+                });
+            } else if (type === 'image') {
+                fabric.Image.fromURL(content, function(img) {
+                    img.set({
+                        left: 200,
+                        top: 150,
+                    });
+                    img.scaleToWidth(150);
+                    fabricCanvas.add(img);
+                    fabricCanvas.setActiveObject(img);
+                    layer.fabricObject = img;
+                    updateLayerDisplay();
+                });
+            } else if (type === 'number') {
+                const number = new fabric.IText(content || '88', {
+                    left: 270,
+                    top: 300,
+                    fontSize: 72,
+                    fill: state.textColor,
+                    fontFamily: 'Fjalla One',
+                    fontWeight: '400'
+                });
+                fabricCanvas.add(number);
+                fabricCanvas.setActiveObject(number);
+                layer.fabricObject = number;
+            }
+
+            state.layers.push(layer);
+            updateLayerDisplay();
+            return layer;
+        }
+
+        function removeLayer(id) {
+            const index = state.layers.findIndex(l => l.id === id);
+            if (index > -1) {
+                const layer = state.layers[index];
+                if (layer.fabricObject) {
+                    fabricCanvas.remove(layer.fabricObject);
+                }
+                state.layers.splice(index, 1);
+                updateLayerDisplay();
+            }
+        }
+
+        function updateLayerDisplay() {
+            const container = document.getElementById('layers-list');
+            container.innerHTML = '';
+
+            state.layers.forEach((layer, index) => {
+                const div = document.createElement('div');
+                div.className = 'layer-item' + (state.selectedLayer === layer.id ? ' active' : '');
+                div.innerHTML = `
+                    <div class="layer-preview">
+                        ${layer.type === 'text' ? 'Tt' : layer.type === 'number' ? '#' : '📷'}
+                    </div>
+                    <div class="layer-info">
+                        <div class="layer-name">
+                            <input type="text" value="${layer.fabricObject?.text || layer.content || 'Layer ' + (index + 1)}" 
+                                   onchange="updateLayerContent(${layer.id}, this.value)">
+                        </div>
+                        <div class="layer-type">${layer.type}</div>
+                    </div>
+                    <div class="layer-actions">
+                        <button class="layer-action-btn" onclick="selectLayer(${layer.id})">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </button>
+                        <button class="layer-action-btn" onclick="removeLayer(${layer.id})">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <polyline points="3,6 5,6 21,6"/>
+                                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                div.onclick = (e) => {
+                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') {
+                        selectLayer(layer.id);
+                    }
+                };
+                container.appendChild(div);
+            });
+        }
+
+        function selectLayer(id) {
+            state.selectedLayer = id;
+            const layer = state.layers.find(l => l.id === id);
+            if (layer && layer.fabricObject) {
+                fabricCanvas.setActiveObject(layer.fabricObject);
+                fabricCanvas.renderAll();
+            }
+            updateLayerDisplay();
+        }
+
+        function updateLayerContent(id, value) {
+            const layer = state.layers.find(l => l.id === id);
+            if (layer && layer.fabricObject && (layer.type === 'text' || layer.type === 'number')) {
+                layer.fabricObject.set('text', value);
+                fabricCanvas.renderAll();
+            }
+        }
+
+        // ========================================
+        // UI EVENT HANDLERS
+        // ========================================
+
+        // Tab switching
+        document.querySelectorAll('.tool-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // View switching
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.currentView = btn.dataset.view;
+                loadProductView();
+            });
+        });
+
+        // Add layer button
+        document.getElementById('add-layer').addEventListener('click', () => {
+            document.getElementById('tab-layers').style.display = 'none';
+            document.getElementById('tools-menu').classList.add('active');
+        });
+
+        // Tool options
+        document.querySelectorAll('.tool-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const tool = option.dataset.tool;
+                if (tool === 'text') {
+                    addLayer('text', 'PLAYER');
+                } else if (tool === 'number') {
+                    addLayer('number', '88');
+                } else if (tool === 'upload') {
+                    document.getElementById('file-input').click();
+                }
+                document.getElementById('tools-menu').classList.remove('active');
+                document.getElementById('tab-layers').style.display = 'block';
+            });
+        });
+
+        // File upload
+        document.getElementById('file-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    addLayer('image', event.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Upload button in uploads tab
+        document.getElementById('upload-btn').addEventListener('click', () => {
+            document.getElementById('file-input').click();
+        });
+
+        // Add text button
+        document.getElementById('add-text-btn').addEventListener('click', () => {
+            addLayer('text', 'PLAYER');
+        });
+
+        // Add number button
+        document.getElementById('add-number-btn').addEventListener('click', () => {
+            addLayer('number', '88');
+        });
+
+        // Color swatches
+        document.querySelectorAll('.color-swatch').forEach(swatch => {
+            swatch.addEventListener('click', () => {
+                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+                swatch.classList.add('active');
+                state.textColor = swatch.dataset.color;
+                
+                const activeObject = fabricCanvas.getActiveObject();
+                if (activeObject && activeObject.type === 'i-text') {
+                    activeObject.set('fill', state.textColor);
+                    fabricCanvas.renderAll();
+                }
+            });
+        });
+
+        // Text size slider
+        document.getElementById('text-size').addEventListener('input', (e) => {
+            state.fontSize = parseInt(e.target.value);
+            const activeObject = fabricCanvas.getActiveObject();
+            if (activeObject && activeObject.type === 'i-text') {
+                activeObject.set('fontSize', state.fontSize);
+                fabricCanvas.renderAll();
+            }
+        });
+
+        // Zoom controls
+        document.getElementById('zoom-in').addEventListener('click', () => {
+            state.zoom = Math.min(state.zoom + 0.1, 2);
+            fabricCanvas.setZoom(state.zoom);
+            document.getElementById('zoom-level').textContent = Math.round(state.zoom * 100) + '%';
+        });
+
+        document.getElementById('zoom-out').addEventListener('click', () => {
+            state.zoom = Math.max(state.zoom - 0.1, 0.5);
+            fabricCanvas.setZoom(state.zoom);
+            document.getElementById('zoom-level').textContent = Math.round(state.zoom * 100) + '%';
+        });
+
+        // Export button
+        document.getElementById('download-btn').addEventListener('click', () => {
+            const dataURL = fabricCanvas.toDataURL({
+                format: 'png',
+                quality: 1,
+                multiplier: 2
+            });
+            const link = document.createElement('a');
+            link.download = 'doussoux-design.png';
+            link.href = dataURL;
+            link.click();
+        });
+
+        // 3D expand modal
+        document.getElementById('expand-3d').addEventListener('click', () => {
+            document.getElementById('modal-3d').classList.add('active');
+        });
+
+        document.getElementById('close-modal').addEventListener('click', () => {
+            document.getElementById('modal-3d').classList.remove('active');
+        });
+
+        // Listen for selection changes on canvas
+        fabricCanvas.on('selection:created', (e) => {
+            const obj = e.selected[0];
+            const layer = state.layers.find(l => l.fabricObject === obj);
+            if (layer) {
+                state.selectedLayer = layer.id;
+                updateLayerDisplay();
+                
+                // Show text editor if text selected
+                if (layer.type === 'text' || layer.type === 'number') {
+                    document.getElementById('text-editor').classList.add('active');
+                    document.getElementById('text-content').value = obj.text;
+                }
+            }
+        });
+
+        fabricCanvas.on('selection:cleared', () => {
+            state.selectedLayer = null;
+            updateLayerDisplay();
+            document.getElementById('text-editor').classList.remove('active');
+        });
+
+        // Text content input
+        document.getElementById('text-content').addEventListener('input', (e) => {
+            const activeObject = fabricCanvas.getActiveObject();
+            if (activeObject && activeObject.type === 'i-text') {
+                activeObject.set('text', e.target.value);
+                fabricCanvas.renderAll();
+                updateLayerDisplay();
+            }
+        });
+
+        // ========================================
+        // THEME TOGGLE
+        // ========================================
+        let isLightMode = true; // Start with light mode by default
+        
+        function toggleTheme() {
+            isLightMode = !isLightMode;
+            document.body.classList.toggle('light-mode', isLightMode);
+            document.getElementById('theme-label').textContent = isLightMode ? 'LIGHT' : 'DARK';
+            
+            // Update canvas background
+            fabricCanvas.setBackgroundColor(isLightMode ? '#ffffff' : '#1a1a1a', () => {
+                fabricCanvas.renderAll();
+            });
+            
+            // Update 3D scene background
+            if (scene) {
+                scene.background = new THREE.Color(isLightMode ? 0xf5f5f5 : 0x1a1a1a);
+            }
+        }
+
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+        // ========================================
+        // INITIALIZATION
+        // ========================================
+        window.addEventListener('load', () => {
+            init3DPreview();
+            
+            // Start in light mode
+            document.body.classList.add('light-mode');
+            fabricCanvas.setBackgroundColor('#ffffff', () => {
+                fabricCanvas.renderAll();
+            });
+        });
+
+        // Make functions globally accessible
+        window.selectLayer = selectLayer;
+        window.removeLayer = removeLayer;
+        window.updateLayerContent = updateLayerContent;
+
+        // ========================================
+        // SHOPIFY INTEGRATION
+        // ========================================
+
+        // Configuration - CHANGE THESE VALUES
+        const SHOPIFY_CONFIG = {
+            storeDomain: 'dsxhockey.myshopify.com', // Tu dominio de Shopify
+            productHandle: 'camiseta-personalizada', // Handle del producto en Shopify
+            // Variant IDs para cada producto (los obtienes de Shopify Admin)
+            variantIds: {
+                'jersey-corporate': '12345678901234', // Cambiar por tu variant ID real
+                'polo-classic': '12345678901235',
+                'hoodie-premium': '12345678901236'
+            }
+        };
+
+        // Add to Cart - Shopify Integration
+        document.getElementById('add-to-cart').addEventListener('click', async function() {
+            try {
+                // 1. Exportar el diseño como imagen
+                const designImage = fabricCanvas.toDataURL({
+                    format: 'png',
+                    quality: 1,
+                    multiplier: 2 // Alta resolución
+                });
+
+                // 2. Preparar datos del diseño
+                const designData = {
+                    product: PRODUCTS[state.currentProductIndex],
+                    view: state.currentView,
+                    layers: state.layers.map(layer => ({
+                        type: layer.type,
+                        content: layer.fabricObject?.text || layer.content,
+                        properties: {
+                            fontSize: layer.fabricObject?.fontSize,
+                            fill: layer.fabricObject?.fill,
+                            fontFamily: layer.fabricObject?.fontFamily
+                        }
+                    })),
+                    timestamp: new Date().toISOString()
+                };
+
+                // 3. Guardar en localStorage para recuperar después
+                localStorage.setItem('doussoux_design', JSON.stringify(designData));
+                localStorage.setItem('doussoux_design_image', designImage);
+
+                // 4. Obtener el variant ID del producto actual
+                const currentProduct = PRODUCTS[state.currentProductIndex];
+                const variantId = SHOPIFY_CONFIG.variantIds[currentProduct.id];
+
+                // 5. OPCIÓN A: Añadir al carrito vía Ajax Cart API (si lo tienes habilitado)
+                if (typeof fetch !== 'undefined') {
+                    const formData = {
+                        items: [{
+                            id: variantId,
+                            quantity: 1,
+                            properties: {
+                                '_Diseño': 'Personalizado',
+                                '_Producto': currentProduct.name,
+                                '_Vista_Principal': state.currentView,
+                                '_Timestamp': new Date().toISOString()
+                            }
+                        }]
+                    };
+
+                    // Intentar añadir al carrito
+                    const response = await fetch('/cart/add.js', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    if (response.ok) {
+                        // Éxito - Redirigir al carrito
+                        alert('✅ ¡Diseño añadido al carrito!');
+                        window.location.href = '/cart';
+                    } else {
+                        throw new Error('Error al añadir al carrito');
+                    }
+                }
+
+                // 6. OPCIÓN B: Redirect directo con parámetros (fallback)
+                // Esto funciona SIEMPRE, incluso sin Ajax Cart API
+                const cartUrl = `/cart/${variantId}:1?attributes[Diseño]=Personalizado&attributes[Producto]=${encodeURIComponent(currentProduct.name)}`;
+                window.location.href = cartUrl;
+
+            } catch (error) {
+                console.error('Error al añadir al carrito:', error);
+                
+                // Fallback: Guardar diseño y redirigir a la página del producto
+                const currentProduct = PRODUCTS[state.currentProductIndex];
+                alert('⚠️ Guardando tu diseño... Te llevamos al carrito.');
+                window.location.href = `/products/${SHOPIFY_CONFIG.productHandle}`;
+            }
+        });
+
+        // Función auxiliar: Enviar diseño al servidor (si tienes backend)
+        async function uploadDesignToServer(imageData) {
+            // Esta función la implementarías si quieres guardar los diseños en tu servidor
+            // Por ahora, los guardamos en localStorage del cliente
+            
+            // Ejemplo con un backend:
+            // const response = await fetch('https://tu-backend.com/api/designs', {
+            //     method: 'POST',
+            //     body: JSON.stringify({ image: imageData }),
+            //     headers: { 'Content-Type': 'application/json' }
+            // });
+            // return await response.json();
+            
+            return { url: imageData }; // Por ahora devolvemos la data directo
+        }
+
+        // Recuperar diseño guardado (si vuelven del carrito)
+        function loadSavedDesign() {
+            const savedDesign = localStorage.getItem('doussoux_design');
+            if (savedDesign) {
+                try {
+                    const designData = JSON.parse(savedDesign);
+                    console.log('Diseño guardado encontrado:', designData);
+                    // Aquí podrías cargar automáticamente el diseño
+                } catch (e) {
+                    console.error('Error al cargar diseño guardado:', e);
+                }
+            }
+        }
+
+        // Botones Guardar y Compartir
+        document.getElementById('save-btn').addEventListener('click', function() {
+            const designImage = fabricCanvas.toDataURL({
+                format: 'png',
+                quality: 1
+            });
+            
+            const link = document.createElement('a');
+            link.download = `doussoux-design-${Date.now()}.png`;
+            link.href = designImage;
+            link.click();
+            
+            alert('✅ Diseño guardado!');
+        });
+
+        document.getElementById('share-btn').addEventListener('click', function() {
+            const currentProduct = PRODUCTS[state.currentProductIndex];
+            const shareText = `¡Mira mi diseño personalizado de ${currentProduct.name} en DOUSSOUX!`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Mi diseño DOUSSOUX',
+                    text: shareText,
+                    url: window.location.href
+                }).catch(err => console.log('Error sharing:', err));
+            } else {
+                // Fallback: copiar al portapapeles
+                navigator.clipboard.writeText(window.location.href);
+                alert('🔗 Link copiado al portapapeles!');
+            }
+        });
+    </script>
+</body>
+</html>
