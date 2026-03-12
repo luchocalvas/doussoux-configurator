@@ -1,0 +1,4017 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOUSSOUX Configurator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Barlow:wght@400;500;600;700&family=Bebas+Neue&family=Anton&family=Oswald:wght@400;700&family=Roboto+Condensed:wght@400;700&family=Teko:wght@400;600&family=Righteous&family=Black+Han+Sans&family=Russo+One&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Barlow', sans-serif;
+            background: #fff;
+            color: #1a1a1a;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── MAIN LAYOUT ── */
+        .app-body {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            min-height: 0;
+            position: relative;
+            background: #fff;
+        }
+
+        /* ── LEFT SIDEBAR: floats bottom-left above footer ── */
+        .left-sidebar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            gap: 10px;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .left-sidebar > * { pointer-events: all; }
+
+        /* Card/box wrapper for 3D section */
+        .box-3d {
+            background: #ebebeb;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+
+        .preview-label {
+            font-size: 10px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .preview-3d-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .preview-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(0,212,255,0.18);
+            color: #00d4ff;
+            padding: 3px 7px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            z-index: 2;
+        }
+
+        /* Product selector box */
+        .product-selector {
+            background: #ebebeb;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 12px 14px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .product-selector-label {
+            font-size: 10px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .product-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .product-arrow {
+            background: transparent;
+            border: 1px solid #ddd;
+            color: #555;
+            width: 28px;
+            height: 28px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .product-arrow:hover { border-color: #00d4ff; color: #00d4ff; }
+        .product-arrow:disabled { opacity: 0.25; cursor: not-allowed; }
+
+        .product-info { flex: 1; text-align: center; min-width: 0; }
+        .product-name { font-size: 12px; font-weight: 600; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .product-type { font-size: 10px; color: #999; margin-top: 1px; }
+
+        /* ── CENTER: Editor canvas — full width, white ── */
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            min-width: 0;
+            position: relative;
+        }
+
+        /* Toolbar spans full width */
+        .editor-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 18px;
+            background: #ebebeb;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 30;
+        }
+
+        .editor-canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #fff;
+            display: block;
+        }
+
+        #editor-canvas { display: block; }
+
+        /* controls-box defined below with fullscreen-btn */
+
+        .ctrl-btn {
+            width: 36px;
+            height: 36px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            color: #555;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .ctrl-btn:hover { border-color: #00d4ff; color: #00d4ff; }
+        .ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .ctrl-btn .tooltip {
+            position: absolute;
+            right: calc(100% + 8px);
+            background: rgba(0,0,0,0.75);
+            color: #fff;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 5px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s;
+        }
+
+        .ctrl-btn:hover .tooltip { opacity: 1; }
+
+        /* ── Controls box: undo/redo/reset — vertical center ── */
+        .controls-box {
+            position: absolute;
+            right: 384px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 15;
+            align-items: center;
+        }
+
+        /* Fullscreen btn inherits ctrl-btn, just needs margin-top separator */
+        .ctrl-btn-fs { /* inherits ctrl-btn */ }
+
+        /* ── 3D Preview: 3 states ── */
+        .preview-3d-container {
+            background: #222;
+            border-radius: 8px;
+            width: 100%;
+            height: 250px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #ccc;
+            flex-shrink: 0;
+            transition: height 0.3s ease;
+        }
+
+        /* State 1 → medium panel expansion */
+        .left-sidebar.expand-medium {
+            width: 380px;
+        }
+
+        .left-sidebar.expand-medium .preview-3d-container {
+            height: 340px;
+        }
+
+        /* State 2 → use modal-3d overlay (handled via JS) */
+
+        /* ── 3D Fullscreen modal overlay ── */
+        #modal-3d {
+            background: #f5f5f5;
+        }
+
+        #modal-3d .modal-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .modal-3d-close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 36px;
+            height: 36px;
+            background: rgba(0,0,0,0.12);
+            border: 1px solid rgba(0,0,0,0.15);
+            border-radius: 50%;
+            color: #333;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1010;
+            transition: all 0.2s;
+        }
+        .modal-3d-close-btn:hover { background: rgba(0,0,0,0.2); }
+
+        .modal-3d-compress-btn {
+            position: absolute;
+            top: 20px;
+            right: 66px;
+            width: 36px;
+            height: 36px;
+            background: rgba(0,0,0,0.12);
+            border: 1px solid rgba(0,0,0,0.15);
+            border-radius: 50%;
+            color: #333;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1010;
+            transition: all 0.2s;
+        }
+        .modal-3d-compress-btn:hover { background: rgba(0,0,0,0.2); }
+
+        #modal-3d-canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .expand-3d-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .expand-3d-btn:hover { background: rgba(0,212,255,0.25); border-color: #00d4ff; }
+
+        /* Close button shown in fullscreen */
+        .close-3d-fullscreen,
+        .compress-3d-btn {
+            position: absolute;
+            top: 14px;
+            width: 32px;
+            height: 32px;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 520;
+            transition: background 0.2s;
+        }
+
+        .close-3d-fullscreen { right: 14px; }
+        .compress-3d-btn { right: 54px; }
+
+        .close-3d-fullscreen:hover,
+        .compress-3d-btn:hover { background: rgba(0,212,255,0.35); border-color: #00d4ff; }
+
+        /* In fullscreen: show both navigation buttons */
+        #preview-3d.expand-fullscreen .close-3d-fullscreen,
+        #preview-3d.expand-fullscreen .compress-3d-btn { display: flex; }
+        #preview-3d.expand-fullscreen .expand-3d-btn { display: none; }
+
+        /* Not in fullscreen: only expand btn visible */
+        #preview-3d:not(.expand-fullscreen) .close-3d-fullscreen,
+        #preview-3d:not(.expand-fullscreen) .compress-3d-btn { display: none; }
+
+        .zoom-controls { display: flex; gap: 6px; align-items: center; }
+
+        .zoom-btn {
+            width: 30px;
+            height: 30px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            color: #333;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .zoom-btn:hover { border-color: #00d4ff; color: #00d4ff; }
+
+        #zoom-level { color: #555; font-weight: 600; font-size: 12px; min-width: 36px; text-align: center; }
+
+        .toolbar-title { font-size: 13px; color: #333; font-weight: 500; }
+        .toolbar-title span { color: #00d4ff; }
+
+        /* ── RIGHT PANEL: floats over canvas ── */
+        .tools-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 360px;
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            padding: 12px;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .tools-panel > * { pointer-events: all; }
+
+        .tools-box {
+            background: #ebebeb;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .tools-tabs {
+            display: flex;
+            border-bottom: 1px solid #e8e8e8;
+            flex-shrink: 0;
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+        }
+
+        .tool-tab {
+            flex: 1;
+            padding: 12px 4px;
+            background: transparent;
+            border: none;
+            color: #999;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tool-tab:hover { color: #333; background: #f8f8f8; }
+        .tool-tab.active { color: #00d4ff; border-bottom-color: #00d4ff; }
+        .tool-tab svg { width: 18px; height: 18px; }
+
+        .tools-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #333;
+        }
+
+        .layers-list { display: flex; flex-direction: column; gap: 6px; }
+
+        .layer-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 7px;
+            border: 1px solid #ececec;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .layer-item:hover { border-color: #ddd; background: #f2f2f2; }
+        .layer-item.active { border-color: #00d4ff; background: rgba(0,212,255,0.05); }
+
+        .layer-preview {
+            width: 36px;
+            height: 36px;
+            background: #ececec;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #888;
+            flex-shrink: 0;
+        }
+
+        .layer-info { flex: 1; min-width: 0; }
+
+        .layer-name input {
+            background: transparent;
+            border: none;
+            color: #1a1a1a;
+            font-size: 13px;
+            font-weight: 500;
+            width: 100%;
+            outline: none;
+        }
+
+        .layer-type { font-size: 10px; color: #999; margin-top: 2px; }
+
+        .layer-actions { display: flex; gap: 3px; }
+
+        .layer-action-btn {
+            width: 26px;
+            height: 26px;
+            background: transparent;
+            border: none;
+            color: #bbb;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .layer-action-btn:hover { background: #ececec; color: #333; }
+
+        .add-layer-btn {
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: 2px dashed #ddd;
+            border-radius: 7px;
+            color: #bbb;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .add-layer-btn:hover { border-color: #00d4ff; color: #00d4ff; }
+
+        .tools-menu { display: none; flex-direction: column; gap: 6px; }
+        .tools-menu.active { display: flex; }
+
+        .tool-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: #f8f8f8;
+            border: 1px solid #ececec;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tool-option:hover { border-color: #00d4ff; background: rgba(0,212,255,0.04); }
+        .tool-option svg { width: 18px; height: 18px; color: #aaa; }
+        .tool-option span { font-size: 13px; font-weight: 500; color: #333; }
+
+        .text-editor-panel { display: none; }
+        .text-editor-panel.active { display: block; }
+
+        .input-group { margin-bottom: 14px; }
+        .input-label { font-size: 11px; color: #999; margin-bottom: 6px; display: block; }
+
+        .text-input {
+            width: 100%;
+            padding: 10px;
+            background: #f8f8f8;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            color: #1a1a1a;
+            font-size: 13px;
+            font-family: 'Barlow', sans-serif;
+        }
+
+        .text-input:focus { outline: none; border-color: #00d4ff; }
+
+        .color-picker-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        .color-swatch {
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .color-swatch:hover { transform: scale(1.1); }
+        .color-swatch.active { border-color: #fff; }
+
+        /* ── CUSTOM FABRIC OBJECT CONTROLS ── */
+        /* Hide default fabric corners, use custom HTML overlay */
+        .canvas-control-overlay {
+            position: absolute;
+            pointer-events: none;
+            z-index: 50;
+            display: none;
+        }
+        .canvas-control-overlay.visible { display: block; }
+
+        .fab-ctrl {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #fff;
+            border: 1.5px solid #ddd;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            pointer-events: all;
+            transition: background 0.15s, border-color 0.15s;
+            color: #444;
+        }
+        .fab-ctrl:hover { background: #f0f0f0; border-color: #aaa; }
+        .fab-ctrl.fab-delete { color: #e53935; }
+        .fab-ctrl.fab-delete:hover { background: #ffeaea; border-color: #e53935; }
+        .fab-ctrl.fab-rotate { cursor: grab; color: #00b4d8; }
+        .fab-ctrl.fab-scale { cursor: nwse-resize; color: #7b2cbf; }
+        .fab-ctrl.fab-move { cursor: move; }
+
+        /* ── COLOR PICKER FULL ── */
+        .color-picker-full-wrapper { position: relative; }
+        .color-swatch-row {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .color-swatch-sm {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.15s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+        .color-swatch-sm:hover { transform: scale(1.15); }
+        .color-swatch-sm.active { border-color: #00d4ff; box-shadow: 0 0 0 3px rgba(0,212,255,0.25); }
+        .color-swatch-custom {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px dashed #ccc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
+            flex-shrink: 0;
+            transition: transform 0.15s;
+        }
+        .color-swatch-custom:hover { transform: scale(1.15); }
+
+        /* Color picker popup */
+        .color-popup {
+            display: none;
+            position: absolute;
+            z-index: 200;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            padding: 12px;
+            width: 220px;
+            left: 0;
+            top: calc(100% + 6px);
+        }
+        .color-popup.open { display: block; }
+        .color-spectrum {
+            width: 100%;
+            height: 110px;
+            border-radius: 6px;
+            position: relative;
+            cursor: crosshair;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+        .color-spectrum canvas { width: 100%; height: 100%; display: block; }
+        .color-hue-bar {
+            width: 100%;
+            height: 14px;
+            border-radius: 7px;
+            background: linear-gradient(to right, #f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);
+            cursor: pointer;
+            margin-bottom: 8px;
+            position: relative;
+        }
+        .hue-cursor {
+            position: absolute;
+            top: -2px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2.5px solid #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+        .color-hex-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .color-hex-input {
+            flex: 1;
+            padding: 5px 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 12px;
+            font-family: monospace;
+            color: #333;
+            background: #f9f9f9;
+        }
+        .color-hex-input:focus { outline: none; border-color: #00d4ff; }
+        .color-ok-btn {
+            padding: 5px 12px;
+            background: #00d4ff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* ── FONT SELECTOR ── */
+        .font-selector-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 10px;
+            background: #f8f8f8;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .font-selector-row:hover { border-color: #00d4ff; }
+        .font-selector-name { font-size: 13px; color: #333; font-weight: 500; }
+        .font-selector-arrow { color: #aaa; font-size: 12px; }
+
+        .font-dropdown {
+            display: none;
+            flex-direction: column;
+            gap: 2px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            max-height: 220px;
+            overflow-y: auto;
+            margin-top: 4px;
+            z-index: 100;
+        }
+        .font-dropdown.open { display: flex; }
+        .font-option {
+            padding: 9px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            transition: background 0.15s;
+            border-radius: 4px;
+        }
+        .font-option:hover { background: #f3f3f3; }
+        .font-option.selected { background: rgba(0,212,255,0.08); color: #00b4d8; }
+
+        /* ── TEXT SIZE NUMBER INPUT ── */
+        .size-number-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .size-number-input {
+            width: 60px;
+            padding: 6px 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            background: #f8f8f8;
+            text-align: center;
+        }
+        .size-number-input:focus { outline: none; border-color: #00d4ff; }
+        .size-stepper { display: flex; flex-direction: column; gap: 2px; }
+        .size-step-btn {
+            width: 22px;
+            height: 16px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #555;
+            transition: background 0.15s;
+        }
+        .size-step-btn:hover { background: #e0e0e0; }
+
+        /* ── LETTER SPACING ── */
+        .spacing-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .spacing-btn {
+            width: 26px;
+            height: 26px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.15s;
+        }
+        .spacing-btn:hover { background: #e0e0e0; }
+        .spacing-slider { flex: 1; accent-color: #00d4ff; }
+        .spacing-value { font-size: 12px; font-weight: 600; color: #555; min-width: 26px; text-align: right; }
+
+        /* ── CLIPARTS PANEL ── */
+        .clipart-breadcrumb {
+            font-size: 11px;
+            color: #aaa;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .clipart-breadcrumb span { cursor: pointer; }
+        .clipart-breadcrumb span:hover { color: #00d4ff; text-decoration: underline; }
+        .clipart-breadcrumb .sep { color: #ccc; }
+
+        .clipart-search {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 7px;
+            font-size: 12px;
+            color: #333;
+            background: #f8f8f8;
+            margin-bottom: 10px;
+        }
+        .clipart-search:focus { outline: none; border-color: #00d4ff; }
+
+        .clipart-categories { display: flex; flex-direction: column; gap: 6px; }
+        .clipart-cat-btn {
+            padding: 11px 14px;
+            background: #f8f8f8;
+            border: 1px solid #ececec;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+            text-align: left;
+            transition: all 0.2s;
+        }
+        .clipart-cat-btn:hover { border-color: #00d4ff; background: rgba(0,212,255,0.04); }
+
+        .clipart-grid {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .clipart-grid.active { display: grid; }
+        .clipart-item {
+            background: #f8f8f8;
+            border: 1px solid #ececec;
+            border-radius: 7px;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 10px;
+            transition: all 0.2s;
+            font-size: 11px;
+            color: #999;
+            text-align: center;
+        }
+        .clipart-item:hover { border-color: #00d4ff; background: rgba(0,212,255,0.04); }
+        .clipart-item img { width: 100%; height: 100%; object-fit: contain; }
+
+        .clipart-empty {
+            text-align: center;
+            color: #aaa;
+            font-size: 12px;
+            padding: 20px 0;
+            line-height: 1.6;
+        }
+
+        /* ── BG TAB ── */
+        .bg-subtab-row {
+            display: flex;
+            border-bottom: 1px solid #e8e8e8;
+            margin-bottom: 14px;
+            gap: 0;
+        }
+        .bg-subtab {
+            flex: 1;
+            padding: 8px 4px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-size: 12px;
+            font-weight: 600;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .bg-subtab.active { color: #00d4ff; border-bottom-color: #00d4ff; }
+        .bg-subtab-content { display: none; }
+        .bg-subtab-content.active { display: block; }
+
+        .bg-upload-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: #f8f8f8;
+            border: 1px solid #ececec;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .bg-upload-btn:hover { border-color: #00d4ff; background: rgba(0,212,255,0.04); }
+        .bg-upload-btn svg { width: 18px; height: 18px; color: #aaa; flex-shrink: 0; }
+        .bg-upload-btn span { font-size: 13px; font-weight: 500; color: #333; }
+
+        .bg-gallery-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .bg-gallery-item {
+            aspect-ratio: 1;
+            border-radius: 7px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            overflow: hidden;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #aaa;
+            transition: all 0.2s;
+        }
+        .bg-gallery-item:hover { border-color: #00d4ff; }
+        .bg-gallery-item.active { border-color: #00d4ff; }
+        .bg-gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* ── ADD ELEMENT MENU ── */
+        .tools-menu-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .tools-menu-back {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #aaa;
+            padding: 2px;
+            display: flex;
+            align-items: center;
+            transition: color 0.15s;
+        }
+        .tools-menu-back:hover { color: #333; }
+
+        .bg-swatch { aspect-ratio: 1; border-radius: 6px; border: 2px solid transparent; cursor: pointer; transition: all 0.2s; }
+        .bg-swatch:hover { transform: scale(1.05); }
+        .bg-swatch.active { border-color: #00d4ff; }
+
+        /* ── UPLOADS GRID ── */
+        .uploads-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .upload-thumb {
+            position: relative;
+            background: #f0f0f0;
+            border: 1px solid #e0e0e0;
+            border-radius: 7px;
+            aspect-ratio: 1;
+            overflow: hidden;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .upload-thumb:hover { border-color: #00d4ff; }
+        .upload-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .upload-thumb-name {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            font-size: 9px;
+            padding: 3px 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .upload-thumb-del {
+            position: absolute;
+            top: 4px; right: 4px;
+            width: 20px; height: 20px;
+            background: rgba(0,0,0,0.4);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.15s;
+            font-size: 12px;
+            line-height: 1;
+        }
+        .upload-thumb:hover .upload-thumb-del { opacity: 1; }
+        .upload-thumb-del:hover { background: #e53935 !important; }
+        .pdf-page-badge {
+            position: absolute;
+            top: 4px; left: 4px;
+            background: #e53935;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        /* ── LAYER IMAGE PREVIEW ── */
+        .layer-preview img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
+
+        /* ── LAYER DRAG REORDER ── */
+        .layer-drag-handle {
+            width: 18px;
+            cursor: grab;
+            color: #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            user-select: none;
+            font-size: 14px;
+        }
+        .layer-drag-handle:active { cursor: grabbing; }
+        .layer-item.drag-over-top { border-top: 2px solid #00d4ff; }
+        .layer-item.drag-over-bottom { border-bottom: 2px solid #00d4ff; }
+        .layer-item.dragging { opacity: 0.35; }
+
+        /* ── FOOTER ── */
+        .footer-bar {
+            height: 80px;
+            background: #ebebeb;
+            border-top: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        /* Theme toggle — left */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #333;
+            flex-shrink: 0;
+        }
+
+        .theme-toggle:hover { border-color: #7b2cbf; }
+        .theme-toggle-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+        .sun-icon { display: block; }
+        .moon-icon { display: none; }
+
+        /* View buttons in footer */
+        .footer-views {
+            display: flex;
+            gap: 6px;
+            flex: 1;
+            align-items: center;
+        }
+
+        .footer-view-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            padding: 8px 10px;
+            background: #fff;
+            border: 2px solid #e8e8e8;
+            border-radius: 7px;
+            color: #888;
+            font-size: 9px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+            min-width: 52px;
+        }
+
+        .footer-view-btn svg { width: 20px; height: 20px; }
+        .footer-view-btn:hover { color: #333; background: #f5f5f5; border-color: #ccc; }
+        .footer-view-btn.active { border-color: #00d4ff; color: #00d4ff; background: rgba(0,212,255,0.06); }
+
+        /* Action buttons */
+        .footer-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+
+        .btn {
+            padding: 9px 16px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Barlow', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #ddd;
+            color: #555;
+        }
+
+        .btn-outline:hover { border-color: #00d4ff; color: #00d4ff; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            color: #fff;
+        }
+
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 18px rgba(0,212,255,0.3); }
+
+        /* ── DARK MODE (toggled) ── */
+        body.dark-mode {
+            background: #0a0a0a;
+            color: #fff;
+        }
+
+        body.dark-mode .editor-toolbar { background: #141414; border-color: #222; }
+        body.dark-mode .zoom-btn { background: #1e1e1e; border-color: #2a2a2a; color: #ccc; }
+        body.dark-mode .zoom-btn:hover { border-color: #00d4ff; color: #00d4ff; }
+        body.dark-mode #zoom-level { color: #aaa; }
+        body.dark-mode .toolbar-title { color: #ccc; }
+
+        body.dark-mode .left-sidebar,
+        body.dark-mode .tools-panel { background: transparent; border-color: transparent; }
+
+        body.dark-mode .box-3d,
+        body.dark-mode .tools-box { background: #161616; border-color: #242424; }
+
+        body.dark-mode .preview-3d-container { background: #1a1a1a; border-color: #1e1e1e; }
+        body.dark-mode .preview-label { color: #555; }
+
+        body.dark-mode .product-selector { background: #1e1e1e; border-color: #2a2a2a; }
+        body.dark-mode .product-selector-label { color: #555; }
+        body.dark-mode .product-name { color: #fff; }
+        body.dark-mode .product-type { color: #555; }
+        body.dark-mode .product-arrow { border-color: #333; color: #aaa; }
+        body.dark-mode .product-arrow:hover { border-color: #00d4ff; color: #00d4ff; }
+
+        body.dark-mode .editor-panel { background: #1a1a1a; }
+        body.dark-mode .editor-canvas-container { background: #1a1a1a; }
+        body.dark-mode .app-body { background: #1a1a1a; }
+        body.dark-mode .fullscreen-btn { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: #aaa; }
+        body.dark-mode .fullscreen-btn:hover { background: rgba(0,212,255,0.12); border-color: #00d4ff; color: #00d4ff; }
+        body.dark-mode .ctrl-btn { background: #1e1e1e; border-color: #333; color: #aaa; }
+        body.dark-mode .ctrl-btn:hover { border-color: #00d4ff; color: #00d4ff; }
+
+        body.dark-mode .save-modal,
+        body.dark-mode .mydesigns-modal { background: #1e1e1e; }
+        body.dark-mode .save-modal-title { color: #fff; }
+        body.dark-mode .save-modal-preview { background: #2a2a2a; }
+        body.dark-mode .save-modal-info { background: #2a2a2a; border-color: #333; color: #999; }
+        body.dark-mode .design-card { background: #2a2a2a; }
+        body.dark-mode .design-card:hover { background: #333; }
+        body.dark-mode .design-card-thumb { background: #333; }
+        body.dark-mode .design-card-name { color: #ccc; }
+        body.dark-mode .design-card-delete { background: rgba(30,30,30,0.9); color: #666; }
+        body.dark-mode .mydesigns-empty { color: #555; }
+
+        body.dark-mode .tools-tabs { border-color: #222; }
+        body.dark-mode .tool-tab { color: #555; }
+        body.dark-mode .tool-tab:hover { color: #fff; background: #1e1e1e; }
+        body.dark-mode .tool-tab.active { color: #00d4ff; }
+
+        body.dark-mode .section-title { color: #ccc; }
+        body.dark-mode .layer-item { background: #1e1e1e; border-color: #2a2a2a; }
+        body.dark-mode .layer-item:hover { background: #222; border-color: #333; }
+        body.dark-mode .layer-item.active { background: rgba(0,212,255,0.05); border-color: #00d4ff; }
+        body.dark-mode .layer-preview { background: #2a2a2a; color: #666; }
+        body.dark-mode .layer-name input { color: #fff; }
+        body.dark-mode .layer-type { color: #555; }
+        body.dark-mode .layer-action-btn { color: #555; }
+        body.dark-mode .layer-action-btn:hover { background: #2a2a2a; color: #fff; }
+        body.dark-mode .add-layer-btn { border-color: #2a2a2a; color: #555; }
+        body.dark-mode .add-layer-btn:hover { border-color: #00d4ff; color: #00d4ff; }
+
+        body.dark-mode .tool-option { background: #1e1e1e; border-color: #2a2a2a; }
+        body.dark-mode .tool-option:hover { border-color: #00d4ff; background: rgba(0,212,255,0.05); }
+        body.dark-mode .tool-option span { color: #ccc; }
+        body.dark-mode .tool-option svg { color: #666; }
+
+        body.dark-mode .input-label { color: #555; }
+        body.dark-mode .text-input { background: #1e1e1e; border-color: #2a2a2a; color: #fff; }
+        body.dark-mode .text-input:focus { border-color: #00d4ff; }
+
+        body.dark-mode .footer-bar { background: #111; border-color: #222; }
+        body.dark-mode .theme-toggle { background: #1a1a1a; border-color: #333; color: #fff; }
+        body.dark-mode .theme-toggle:hover { border-color: #00d4ff; }
+        body.dark-mode .sun-icon { display: none; }
+        body.dark-mode .moon-icon { display: block; }
+
+        body.dark-mode .footer-view-btn { background: #1a1a1a; border-color: #2a2a2a; color: #666; }
+        body.dark-mode .footer-view-btn:hover { color: #fff; background: #222; border-color: #444; }
+        body.dark-mode .footer-view-btn.active { border-color: #00d4ff; color: #00d4ff; background: rgba(0,212,255,0.08); }
+
+        body.dark-mode .btn-outline { border-color: #333; color: #ccc; }
+        body.dark-mode .btn-outline:hover { border-color: #00d4ff; color: #00d4ff; }
+
+        body.dark-mode .bg-swatch { opacity: 0.9; }
+
+        /* ── LIGHT MODE SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #f0f0f0; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #bbb; }
+
+        body.dark-mode ::-webkit-scrollbar-track { background: #0d0d0d; }
+        body.dark-mode ::-webkit-scrollbar-thumb { background: #2a2a2a; }
+        body.dark-mode ::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal-content {
+            width: 80%;
+            height: 80%;
+            position: relative;
+        }
+
+        .modal-close { position: absolute; top: -40px; right: 0; background: none; border: none; color: #fff; font-size: 28px; cursor: pointer; opacity: 0.7; transition: opacity 0.2s; }
+        .modal-close:hover { opacity: 1; }
+
+        /* Inside white modals (save, mis diseños) — close button must be dark */
+        .save-modal .modal-close,
+        .mydesigns-modal .modal-close { color: #333; font-size: 22px; }
+
+        /* ── SAVE DESIGN MODAL ── */
+        .save-modal {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            width: 380px;
+            max-width: 95vw;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        }
+
+        .save-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .save-modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .save-modal-preview {
+            background: #f5f5f5;
+            border-radius: 10px;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .save-modal-info {
+            display: flex;
+            gap: 12px;
+            background: #f8f8f8;
+            border: 1px solid #e8e8e8;
+            border-radius: 10px;
+            padding: 14px;
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .save-modal-fields { display: flex; flex-direction: column; gap: 12px; }
+
+        .save-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* ── MY DESIGNS MODAL ── */
+        .mydesigns-modal {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            width: 420px;
+            max-width: 95vw;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        }
+
+        .mydesigns-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mydesigns-header .save-modal-title { flex: 1; }
+
+        .mydesigns-back {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #555;
+            display: flex;
+            align-items: center;
+            padding: 4px;
+            border-radius: 5px;
+        }
+
+        .mydesigns-back:hover { color: #1a1a1a; background: #f0f0f0; }
+
+        .mydesigns-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            overflow-y: auto;
+            padding-right: 4px;
+            min-height: 80px;
+        }
+
+        .design-card {
+            background: #f8f8f8;
+            border-radius: 10px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .design-card:hover { background: #f0f0f0; }
+
+        .design-card-thumb {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #ececec;
+            border-radius: 7px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .design-card-thumb img { width: 80%; height: 80%; object-fit: contain; }
+
+        .design-card-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .design-card-delete {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 5px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #bbb;
+            transition: color 0.2s;
+        }
+
+        .design-card-delete:hover { color: #e53e3e; }
+
+        .mydesigns-empty {
+            text-align: center;
+            color: #bbb;
+            font-size: 13px;
+            padding: 30px 0;
+            grid-column: 1/-1;
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #f0f0f0; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #bbb; }
+
+        /* ── FLOATING TOOLBAR ── */
+        #floating-toolbar {
+            position: absolute;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            display: none;
+            align-items: center;
+            gap: 2px;
+            padding: 5px 7px;
+            z-index: 60;
+            user-select: none;
+            white-space: nowrap;
+        }
+        #floating-toolbar.visible { display: flex; }
+        .ftb-drag-handle {
+            width: 16px; height: 26px;
+            cursor: grab; color: #ccc;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; margin-right: 3px; flex-shrink: 0;
+        }
+        .ftb-drag-handle:active { cursor: grabbing; }
+        .ftb-sep { width: 1px; height: 22px; background: #e8e8e8; margin: 0 3px; flex-shrink: 0; }
+        .ftb-btn {
+            position: relative;
+            display: flex; align-items: center;
+            padding: 6px 8px;
+            border: none; background: none; border-radius: 6px;
+            cursor: pointer; color: #444;
+            transition: background 0.15s, color 0.15s;
+        }
+        .ftb-btn:hover { background: #f0f0f0; color: #000; }
+        .ftb-btn svg { display: block; }
+        /* Tooltip on hover */
+        .ftb-btn[data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: calc(100% + 7px); left: 50%;
+            transform: translateX(-50%);
+            background: #111; color: #fff;
+            font-size: 10px; font-weight: 600;
+            padding: 4px 8px; border-radius: 5px;
+            white-space: nowrap; pointer-events: none;
+            opacity: 0; transition: opacity 0.15s; z-index: 999;
+        }
+        .ftb-btn[data-tooltip]:hover::after { opacity: 1; }
+        body.dark-mode #floating-toolbar { background: #1e1e1e; border-color: #333; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        body.dark-mode .ftb-btn { color: #bbb; }
+        body.dark-mode .ftb-btn:hover { background: #2a2a2a; color: #fff; }
+        body.dark-mode .ftb-btn[data-tooltip]::after { background: #e0e0e0; color: #111; }
+        body.dark-mode .ftb-sep { background: #333; }
+        body.dark-mode .ftb-drag-handle { color: #444; }
+
+        /* ── CONFIRM DIALOG ── */
+        #confirm-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.35);
+            z-index: 9999; display: none;
+            align-items: center; justify-content: center;
+        }
+        #confirm-overlay.open { display: flex; }
+        .confirm-box {
+            background: #fff; border-radius: 14px;
+            padding: 28px 28px 22px; width: 320px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+        }
+        .confirm-box-title { font-size: 17px; font-weight: 700; color: #111; margin-bottom: 14px; }
+        .confirm-box-body { display: flex; gap: 12px; align-items: flex-start; color: #555; font-size: 13px; margin-bottom: 22px; }
+        .confirm-box-body svg { flex-shrink: 0; margin-top: 1px; }
+        .confirm-box-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .confirm-btn-no { padding: 9px 22px; border-radius: 20px; border: 1.5px solid #ddd; background: #fff; font-size: 13px; font-weight: 600; color: #555; cursor: pointer; }
+        .confirm-btn-no:hover { border-color: #bbb; color: #333; }
+        .confirm-btn-yes { padding: 9px 22px; border-radius: 20px; border: none; background: #e53935; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .confirm-btn-yes:hover { background: #c62828; }
+    </style>
+</head>
+<body>
+
+    <!-- ══════════════════════════════
+         FULL-WIDTH TOOLBAR
+    ══════════════════════════════ -->
+    <div class="editor-toolbar">
+        <div class="zoom-controls">
+            <button class="zoom-btn" id="zoom-out" title="Alejar">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/>
+                </svg>
+            </button>
+            <span id="zoom-level">100%</span>
+            <button class="zoom-btn" id="zoom-in" title="Acercar">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+                </svg>
+            </button>
+        </div>
+        <div class="toolbar-title">
+            CAMISETA DOUSSOUX <span id="toolbar-product-name">CORPORATE</span>
+        </div>
+        <div style="width:80px;"></div>
+    </div>
+
+    <!-- ══════════════════════════════
+         APP BODY: full canvas + floating panels
+    ══════════════════════════════ -->
+    <div class="app-body">
+
+        <!-- CENTER: Editor — takes full width -->
+        <main class="editor-panel">
+            <!-- Canvas area -->
+            <div class="editor-canvas-container" id="canvas-container">
+                <canvas id="editor-canvas"></canvas>
+
+                <!-- ── FLOATING TOOLBAR ── -->
+                <div id="floating-toolbar">
+                    <div class="ftb-drag-handle" id="ftb-drag">⠿</div>
+                    <!-- TEXT + IMAGE: duplicate -->
+                    <button class="ftb-btn" id="ftb-duplicate" data-tooltip="Duplicar">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                        </svg>
+                    </button>
+                    <!-- IMAGE only -->
+                    <div class="ftb-sep ftb-img-only"></div>
+                    <button class="ftb-btn ftb-img-only" id="ftb-flip-h" data-tooltip="Voltear horizontal">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M12 3v18"/><polyline points="5,8 12,3 19,8"/><line x1="3" y1="12" x2="21" y2="12" stroke-dasharray="2 2"/>
+                        </svg>
+                    </button>
+                    <button class="ftb-btn ftb-img-only" id="ftb-flip-v" data-tooltip="Voltear vertical">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M3 12h18"/><polyline points="8,5 3,12 8,19"/><line x1="12" y1="3" x2="12" y2="21" stroke-dasharray="2 2"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Custom Fabric object controls overlay -->
+                <div id="fab-controls-overlay" style="position:absolute;top:0;left:0;pointer-events:none;z-index:50;">
+                    <!-- top-left: move -->
+                    <button class="fab-ctrl fab-move" id="fab-move" style="position:absolute;pointer-events:all;" title="Mover">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polyline points="5,9 2,12 5,15"/><polyline points="9,5 12,2 15,5"/>
+                            <polyline points="15,19 12,22 9,19"/><polyline points="19,9 22,12 19,15"/>
+                            <line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/>
+                        </svg>
+                    </button>
+                    <!-- top-right: rotate -->
+                    <button class="fab-ctrl fab-rotate" id="fab-rotate" style="position:absolute;pointer-events:all;" title="Rotar">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 11-.57-8.38"/>
+                        </svg>
+                    </button>
+                    <!-- bottom-left: delete -->
+                    <button class="fab-ctrl fab-delete" id="fab-delete" style="position:absolute;pointer-events:all;" title="Eliminar">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polyline points="3,6 5,6 21,6"/>
+                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                        </svg>
+                    </button>
+                    <!-- bottom-right: scale -->
+                    <button class="fab-ctrl fab-scale" id="fab-scale" style="position:absolute;pointer-events:all;" title="Escalar">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polyline points="15,3 21,3 21,9"/><polyline points="9,21 3,21 3,15"/>
+                            <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Controls box: undo / redo / reset — mid-right of canvas -->
+                <div class="controls-box">
+                    <button class="ctrl-btn" id="undo" title="Deshacer">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
+                        </svg>
+                        <span class="tooltip">Deshacer</span>
+                    </button>
+                    <button class="ctrl-btn" id="redo" title="Rehacer">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7"/>
+                        </svg>
+                        <span class="tooltip">Rehacer</span>
+                    </button>
+                    <button class="ctrl-btn" id="reset-design" title="Volver al original">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                            <path d="M3 3v5h5"/>
+                        </svg>
+                        <span class="tooltip">Restablecer</span>
+                    </button>
+                    <!-- Fullscreen page button — separated -->
+                    <button class="ctrl-btn ctrl-btn-fs" id="fullscreen-btn" title="Pantalla completa" style="margin-top:14px;">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polyline points="15,3 21,3 21,9"/><polyline points="9,21 3,21 3,15"/>
+                            <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+                        </svg>
+                        <span class="tooltip">Pantalla completa</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- LEFT SIDEBAR: floats bottom-left -->
+        <aside class="left-sidebar">
+            <div class="box-3d">
+                <div class="preview-label" style="display:flex;align-items:center;justify-content:space-between;">
+                    <span>Vista previa 3D</span>
+                    <button id="close-3d-medium" title="Cerrar" style="display:none;background:transparent;border:none;cursor:pointer;color:#888;padding:2px;border-radius:4px;line-height:1;" onmouseover="this.style.color='#333'" onmouseout="this.style.color='#888'">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="preview-3d-container" id="preview-3d">
+                    <span class="preview-badge">3D</span>
+                    <!-- Expand button (cycles states) -->
+                    <button class="expand-3d-btn" id="expand-3d" title="Ampliar vista 3D">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polyline points="15,3 21,3 21,9"/><polyline points="9,21 3,21 3,15"/>
+                            <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Product Selector box -->
+            <div class="product-selector">
+                <div class="product-selector-label">Producto</div>
+                <div class="product-display">
+                    <button class="product-arrow" id="prevProductBtn" onclick="previousProduct()">
+                        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polyline points="15,18 9,12 15,6"/>
+                        </svg>
+                    </button>
+                    <div class="product-info">
+                        <div class="product-name" id="currentProductName">Camiseta Corporate</div>
+                        <div class="product-type" id="currentProductType">Jersey personalizado</div>
+                    </div>
+                    <button class="product-arrow" id="nextProductBtn" onclick="nextProduct()">
+                        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polyline points="9,18 15,12 9,6"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- RIGHT PANEL: Tools -->
+        <aside class="tools-panel">
+            <div class="tools-box">
+            <div class="tools-tabs">
+                <button class="tool-tab active" data-tab="layers">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12,2 2,7 12,12 22,7"/>
+                        <polyline points="2,17 12,22 22,17"/>
+                        <polyline points="2,12 12,17 22,12"/>
+                    </svg>
+                    Layers
+                </button>
+                <button class="tool-tab" data-tab="uploads">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                        <polyline points="17,8 12,3 7,8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    Uploads
+                </button>
+                <button class="tool-tab" data-tab="cliparts">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21,15 16,10 5,21"/>
+                    </svg>
+                    Cliparts
+                </button>
+                <button class="tool-tab" data-tab="text">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="4,7 4,4 20,4 20,7"/>
+                        <line x1="9" y1="20" x2="15" y2="20"/>
+                        <line x1="12" y1="4" x2="12" y2="20"/>
+                    </svg>
+                    Text
+                </button>
+                <button class="tool-tab" data-tab="background">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="2" width="20" height="20" rx="3"/>
+                        <circle cx="12" cy="12" r="4"/>
+                    </svg>
+                    BG
+                </button>
+            </div>
+
+            <div class="tools-content">
+
+                <!-- ══ LAYERS TAB ══ -->
+                <div class="tab-content active" id="tab-layers">
+
+                    <!-- Layers list view -->
+                    <div id="layers-view">
+                        <div class="section-title">
+                            Design elements
+                        </div>
+                        <div class="layers-list" id="layers-list"></div>
+                        <button class="add-layer-btn" id="add-layer">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="16"/>
+                                <line x1="8" y1="12" x2="16" y2="12"/>
+                            </svg>
+                            Añadir elemento
+                        </button>
+                    </div>
+
+                    <!-- Add element picker -->
+                    <div id="add-element-menu" style="display:none;">
+                        <div class="tools-menu-header">
+                            <button class="tools-menu-back" id="back-to-layers">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <polyline points="15,18 9,12 15,6"/>
+                                </svg>
+                            </button>
+                            <span class="section-title" style="margin-bottom:0;">Añadir elemento</span>
+                        </div>
+                        <div class="tool-option" id="menu-add-text">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="4,7 4,4 20,4 20,7"/>
+                                <line x1="9" y1="20" x2="15" y2="20"/>
+                                <line x1="12" y1="4" x2="12" y2="20"/>
+                            </svg>
+                            <span>Texto</span>
+                        </div>
+                        <div class="tool-option" id="menu-upload-file" style="margin-top:6px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                <polyline points="17,8 12,3 7,8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <span>Subir archivo</span>
+                        </div>
+                        <div class="tool-option" id="menu-cliparts" style="margin-top:6px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21,15 16,10 5,21"/>
+                            </svg>
+                            <span>Cliparts</span>
+                        </div>
+                        <div class="tool-option" id="menu-fill-bg" style="margin-top:6px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 14.66V20a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2h5.34"/>
+                                <polygon points="18,2 22,6 12,16 8,16 8,12"/>
+                            </svg>
+                            <span>Fill Background</span>
+                        </div>
+                        <input type="file" id="file-input" accept="image/*,image/svg+xml" style="display:none">
+                    </div>
+
+                    <!-- Text editor (shown when text selected) -->
+                    <div id="text-editor" style="display:none;">
+                        <div class="tools-menu-header">
+                            <button class="tools-menu-back" id="back-from-text">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <polyline points="15,18 9,12 15,6"/>
+                                </svg>
+                            </button>
+                            <span class="section-title" style="margin-bottom:0;">Text</span>
+                            <button id="delete-text-layer" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#e53935;display:flex;align-items:center;">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <polyline points="3,6 5,6 21,6"/>
+                                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Text content -->
+                        <div class="input-group">
+                            <textarea class="text-input" id="text-content" rows="2" placeholder="Tu texto aquí..." style="resize:vertical;"></textarea>
+                        </div>
+
+                        <!-- Font -->
+                        <div class="input-group">
+                            <label class="input-label">Font</label>
+                            <div class="font-selector-row" id="font-selector-toggle">
+                                <span class="font-selector-name" id="font-selector-label">Barlow</span>
+                                <span class="font-selector-arrow">▾</span>
+                            </div>
+                            <div class="font-dropdown" id="font-dropdown">
+                                <div class="font-option selected" data-font="Barlow" style="font-family:'Barlow';">Barlow</div>
+                                <div class="font-option" data-font="Fjalla One" style="font-family:'Fjalla One';">Fjalla One</div>
+                                <div class="font-option" data-font="Bebas Neue" style="font-family:'Bebas Neue';">Bebas Neue</div>
+                                <div class="font-option" data-font="Anton" style="font-family:'Anton';">Anton</div>
+                                <div class="font-option" data-font="Oswald" style="font-family:'Oswald';">Oswald</div>
+                                <div class="font-option" data-font="Roboto Condensed" style="font-family:'Roboto Condensed';">Roboto Condensed</div>
+                                <div class="font-option" data-font="Teko" style="font-family:'Teko';">Teko</div>
+                                <div class="font-option" data-font="Righteous" style="font-family:'Righteous';">Righteous</div>
+                                <div class="font-option" data-font="Russo One" style="font-family:'Russo One';">Russo One</div>
+                            </div>
+                        </div>
+
+                        <!-- Color -->
+                        <div class="input-group">
+                            <label class="input-label">Color</label>
+                            <div class="color-picker-full-wrapper">
+                                <div class="color-swatch-row" id="text-color-row">
+                                    <div class="color-swatch-sm active" style="background:#ffffff" data-color="#ffffff"></div>
+                                    <div class="color-swatch-sm" style="background:#000000" data-color="#000000"></div>
+                                    <div class="color-swatch-sm" style="background:#888888" data-color="#888888"></div>
+                                    <div class="color-swatch-sm" style="background:#00d4ff" data-color="#00d4ff"></div>
+                                    <div class="color-swatch-sm" style="background:#0044cc" data-color="#0044cc"></div>
+                                    <div class="color-swatch-sm" style="background:#7b2cbf" data-color="#7b2cbf"></div>
+                                    <div class="color-swatch-sm" style="background:#e91e63" data-color="#e91e63"></div>
+                                    <div class="color-swatch-sm" style="background:#ff4444" data-color="#ff4444"></div>
+                                    <div class="color-swatch-sm" style="background:#ff9800" data-color="#ff9800"></div>
+                                    <div class="color-swatch-sm" style="background:#F2D953" data-color="#F2D953"></div>
+                                    <div class="color-swatch-sm" style="background:#4caf50" data-color="#4caf50"></div>
+                                    <div class="color-swatch-custom" id="text-color-custom" title="Color personalizado"></div>
+                                </div>
+                                <!-- Full color picker popup -->
+                                <div class="color-popup" id="text-color-popup">
+                                    <canvas id="color-spectrum-canvas" class="color-spectrum" width="196" height="110"></canvas>
+                                    <div class="color-hue-bar" id="color-hue-bar">
+                                        <div class="hue-cursor" id="hue-cursor" style="left:0%"></div>
+                                    </div>
+                                    <div class="color-hex-row">
+                                        <div style="width:24px;height:24px;border-radius:4px;border:1px solid #ddd;flex-shrink:0;" id="color-preview-box"></div>
+                                        <input class="color-hex-input" id="color-hex-input" type="text" value="#ffffff" maxlength="7">
+                                        <button class="color-ok-btn" id="color-ok-btn">OK</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Size -->
+                        <div class="input-group">
+                            <label class="input-label">Size</label>
+                            <div class="size-number-row">
+                                <input type="number" class="size-number-input" id="text-size-num" value="48" min="8" max="200">
+                                <div class="size-stepper">
+                                    <button class="size-step-btn" id="size-up">▲</button>
+                                    <button class="size-step-btn" id="size-down">▼</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Letter spacing -->
+                        <div class="input-group">
+                            <label class="input-label">Letter-spacing</label>
+                            <div class="spacing-row">
+                                <button class="spacing-btn" id="spacing-minus">−</button>
+                                <input type="range" class="spacing-slider" id="letter-spacing" min="0" max="800" value="200" step="10">
+                                <button class="spacing-btn" id="spacing-plus">+</button>
+                                <span class="spacing-value" id="spacing-val">0</span>
+                            </div>
+                        </div>
+
+                        <!-- Add more text -->
+                        <div style="border-top:1px solid #eee;padding-top:12px;margin-top:4px;display:flex;justify-content:space-between;align-items:center;">
+                            <button id="add-more-text-btn" style="background:none;border:none;cursor:pointer;color:#00d4ff;font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                                Add more text
+                            </button>
+                        </div>
+                    </div>
+
+                </div><!-- end tab-layers -->
+
+                <!-- ══ UPLOADS TAB ══ -->
+                <div class="tab-content" id="tab-uploads">
+                    <div class="section-title">Subir archivo</div>
+                    <button class="bg-upload-btn" id="upload-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                            <polyline points="17,8 12,3 7,8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <span>Desde tu dispositivo</span>
+                    </button>
+                    <input type="file" id="file-input-uploads" accept="image/*,image/svg+xml,application/pdf" style="display:none">
+                    <!-- Uploaded files grid -->
+                    <div class="uploads-grid" id="uploads-grid"></div>
+                    <p id="uploads-empty" style="color:#bbb;font-size:11px;text-align:center;margin-top:16px;display:none;">Tus archivos aparecerán aquí</p>
+                </div>
+
+                <!-- ══ CLIPARTS TAB ══ -->
+                <div class="tab-content" id="tab-cliparts">
+                    <input type="text" class="clipart-search" id="clipart-search" placeholder="Buscar...">
+                    <div class="clipart-breadcrumb" id="clipart-breadcrumb">
+                        <span data-nav="root">Todas las categorías</span>
+                    </div>
+                    <!-- Categories -->
+                    <div class="clipart-categories" id="clipart-cats">
+                        <button class="clipart-cat-btn" data-cat="flags">Banderas</button>
+                        <button class="clipart-cat-btn" data-cat="clipart">Clipart</button>
+                        <button class="clipart-cat-btn" data-cat="geometric">Geometrías</button>
+                    </div>
+                    <!-- Grid (shown when category selected) -->
+                    <div class="clipart-grid" id="clipart-grid"></div>
+                    <p class="clipart-empty" id="clipart-empty" style="display:none;">Próximamente: añade SVGs a la carpeta de cliparts</p>
+                </div>
+
+                <!-- ══ TEXT TAB ══ -->
+                <div class="tab-content" id="tab-text">
+                    <div class="section-title">Añadir texto</div>
+                    <button class="bg-upload-btn" id="add-text-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="4,7 4,4 20,4 20,7"/>
+                            <line x1="9" y1="20" x2="15" y2="20"/>
+                            <line x1="12" y1="4" x2="12" y2="20"/>
+                        </svg>
+                        <span>Añadir texto</span>
+                    </button>
+                </div>
+
+                <!-- ══ BACKGROUND TAB ══ -->
+                <div class="tab-content" id="tab-background">
+                    <div class="section-title">Fill Background</div>
+                    <div class="bg-subtab-row">
+                        <button class="bg-subtab active" data-bgtab="upload">Uploads</button>
+                        <button class="bg-subtab" data-bgtab="gallery">Gallery</button>
+                    </div>
+                    <!-- Uploads subtab -->
+                    <div class="bg-subtab-content active" id="bgtab-upload">
+                        <button class="bg-upload-btn" id="bg-upload-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                <polyline points="17,8 12,3 7,8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <span>From your device</span>
+                        </button>
+                        <input type="file" id="bg-file-input" accept="image/*" style="display:none">
+                    </div>
+                    <!-- Gallery subtab -->
+                    <div class="bg-subtab-content" id="bgtab-gallery">
+                        <div class="bg-gallery-grid" id="bg-gallery-grid">
+                            <!-- Shirt colors as swatches -->
+                            <div class="bg-gallery-item" style="background:#1a1a1a;" data-shirt-color="#1a1a1a"></div>
+                            <div class="bg-gallery-item" style="background:#ffffff;border:1px solid #eee;" data-shirt-color="#ffffff"></div>
+                            <div class="bg-gallery-item" style="background:#00254a;" data-shirt-color="#00254a"></div>
+                            <div class="bg-gallery-item" style="background:#8b0000;" data-shirt-color="#8b0000"></div>
+                            <div class="bg-gallery-item" style="background:#00796b;" data-shirt-color="#00796b"></div>
+                            <div class="bg-gallery-item" style="background:#1a237e;" data-shirt-color="#1a237e"></div>
+                            <div class="bg-gallery-item" style="background:#4a148c;" data-shirt-color="#4a148c"></div>
+                            <div class="bg-gallery-item" style="background:#e65100;" data-shirt-color="#e65100"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- end tools-content -->
+            </div><!-- end tools-box -->
+        </aside>
+    </div>
+
+    <!-- ══════════════════════════════
+         FOOTER BAR
+    ══════════════════════════════ -->
+    <footer class="footer-bar">
+        <!-- Theme toggle -->
+        <button class="theme-toggle" id="theme-toggle">
+            <span style="display:flex;align-items:center;">
+                <svg class="moon-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+                </svg>
+                <svg class="sun-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="5"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                    <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+            </span>
+            <span class="theme-toggle-label" id="theme-label">DARK</span>
+        </button>
+
+        <!-- View buttons -->
+        <div class="footer-views">
+            <button class="footer-view-btn active" data-view="front">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="4" y="2" width="16" height="20" rx="2"/>
+                </svg>
+                FRONT
+            </button>
+            <button class="footer-view-btn" data-view="back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="4" y="2" width="16" height="20" rx="2"/>
+                    <line x1="12" y1="6" x2="12" y2="18" stroke-dasharray="2"/>
+                </svg>
+                BACK
+            </button>
+            <button class="footer-view-btn" data-view="sleeve-left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M6 4 L18 4 L20 20 L4 20 Z"/>
+                </svg>
+                SLEEVE L
+            </button>
+            <button class="footer-view-btn" data-view="sleeve-right">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M6 4 L18 4 L20 20 L4 20 Z" transform="scale(-1,1) translate(-24,0)"/>
+                </svg>
+                SLEEVE R
+            </button>
+            <button class="footer-view-btn" data-view="neck">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <ellipse cx="12" cy="12" rx="8" ry="4"/>
+                </svg>
+                NECK
+            </button>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="footer-actions">
+            <button class="btn btn-outline" id="my-designs-btn">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                </svg>
+                Mis diseños
+            </button>
+            <button class="btn btn-outline" id="save-design-btn">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                    <polyline points="17,21 17,13 7,13 7,21"/>
+                    <polyline points="7,3 7,8 15,8"/>
+                </svg>
+                Guardar
+            </button>
+            <button class="btn btn-outline" id="share-btn">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+                Compartir
+            </button>
+            <button class="btn btn-primary" id="add-to-cart">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                </svg>
+                Añadir al carrito
+            </button>
+        </div>
+    </footer>
+
+    <!-- Modal: Guardar diseño -->
+    <div class="modal-overlay" id="modal-save" style="display:none; align-items:center; justify-content:center;">
+        <div class="save-modal">
+            <div class="save-modal-header">
+                <span class="save-modal-title">Guardar diseño</span>
+                <button class="modal-close" id="close-save-modal" style="position:relative;top:auto;right:auto;">&times;</button>
+            </div>
+            <div class="save-modal-preview" id="save-preview-img">
+                <canvas id="save-thumb-canvas" style="max-width:100%;max-height:100%;border-radius:8px;"></canvas>
+            </div>
+            <div class="save-modal-info" id="save-cookie-notice" style="display:none;">
+                <svg width="22" height="22" fill="none" stroke="#888" stroke-width="1.5" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px">
+                    <path d="M10 15v4m4-4v4M5 9l1 11h12L19 9M3 9h18M9 9V5a3 3 0 016 0v4"/>
+                </svg>
+                <span>Ten en cuenta que este guardado es temporal y no podrás acceder al diseño si cambias de navegador, caducan las cookies o limpias la caché.</span>
+            </div>
+            <div class="save-modal-fields" id="save-fields">
+                <div class="input-group">
+                    <label class="input-label">Nombre *</label>
+                    <input type="text" class="text-input" id="design-name" placeholder="Mi diseño...">
+                </div>
+                <div class="input-group" style="margin-bottom:0">
+                    <label class="input-label">Etiquetas</label>
+                    <input type="text" class="text-input" id="design-tags" placeholder="Añadir etiquetas">
+                </div>
+            </div>
+            <div class="save-modal-actions" id="save-actions">
+                <button class="btn btn-outline" id="save-as-copy-btn">Guardar como nueva copia</button>
+                <button class="btn btn-primary" id="save-replace-btn">Guardar y reemplazar</button>
+            </div>
+            <div class="save-modal-actions" id="save-ok-actions" style="display:none;">
+                <button class="btn btn-primary" style="width:100%" id="save-ok-btn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Mis diseños guardados -->
+    <div class="modal-overlay" id="modal-mydesigns" style="display:none; align-items:center; justify-content:flex-end;">
+        <div class="mydesigns-modal">
+            <div class="mydesigns-header">
+                <button class="mydesigns-back" id="close-mydesigns">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg>
+                </button>
+                <span class="save-modal-title">Mis diseños guardados</span>
+                <button class="btn btn-outline" id="open-save-from-designs" style="padding:6px 12px;font-size:11px;gap:4px;">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                        <polyline points="17,21 17,13 7,13 7,21"/>
+                    </svg>
+                    Guardar
+                </button>
+                <button class="modal-close" id="close-mydesigns2" style="position:relative;top:auto;right:auto;">&times;</button>
+            </div>
+            <div class="mydesigns-search">
+                <input type="text" class="text-input" id="designs-search" placeholder="Buscar...">
+            </div>
+            <div class="mydesigns-grid" id="mydesigns-grid">
+                <!-- filled by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3D fullscreen — NinJersey style -->
+    <div class="modal-overlay" id="modal-3d">
+        <div class="modal-content">
+            <!-- Compress → back to medium -->
+            <button class="modal-3d-compress-btn" id="modal-3d-compress" title="Reducir">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="4,14 10,14 10,20"/><polyline points="20,10 14,10 14,4"/>
+                    <line x1="10" y1="14" x2="3" y2="21"/><line x1="21" y1="3" x2="14" y2="10"/>
+                </svg>
+            </button>
+            <!-- Close → back to state 0 -->
+            <button class="modal-3d-close-btn" id="modal-3d-close" title="Cerrar">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+            <div id="modal-3d-canvas-container"></div>
+        </div>
+    </div>
+
+    <!-- ── CONFIRM DIALOG ── (must be before script so DOM elements exist when JS runs) -->
+    <div id="confirm-overlay">
+        <div class="confirm-box">
+            <div class="confirm-box-title">¿Estás seguro?</div>
+            <div class="confirm-box-body">
+                <svg width="22" height="22" fill="none" stroke="#e59935" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span id="confirm-message">¿Quieres eliminar este archivo?</span>
+            </div>
+            <div class="confirm-box-actions">
+                <button class="confirm-btn-no" id="confirm-no">No</button>
+                <button class="confirm-btn-yes" id="confirm-yes">Sí, eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Fabric.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+
+    <script>
+        // ══════════════════════════════════════════
+        // STATE
+        // ══════════════════════════════════════════
+        const state = {
+            currentView: 'front',
+            currentProductIndex: 0,
+            layers: [],
+            selectedLayer: null,
+            zoom: 1,
+            textColor: '#ffffff',
+            fontSize: 48,
+            fontFamily: 'Barlow',
+            letterSpacing: 0,
+            shirtColor: null,
+            isLightMode: true
+        };
+
+        // ══════════════════════════════════════════
+        // PRODUCTS
+        // ══════════════════════════════════════════
+        const PRODUCTS = [
+            {
+                id: 'jersey-corporate',
+                name: 'Camiseta Corporate',
+                type: 'Jersey personalizado',
+                views: {
+                    front: './assets/front.png',
+                    back: './assets/back.png',
+                    'sleeve-left': './assets/sleeve_1.png',
+                    'sleeve-right': './assets/sleeve_2.png',
+                    neck: './assets/neck.png'
+                }
+            },
+            {
+                id: 'polo-classic',
+                name: 'Polo Classic',
+                type: 'Polo personalizado',
+                views: {
+                    front: './assets/polo-front.png',
+                    back: './assets/polo-back.png',
+                    'sleeve-left': './assets/polo-sleeve-left.png',
+                    'sleeve-right': './assets/polo-sleeve-right.png',
+                    neck: './assets/polo-neck.png'
+                }
+            },
+            {
+                id: 'hoodie-premium',
+                name: 'Hoodie Premium',
+                type: 'Sudadera personalizada',
+                views: {
+                    front: './assets/hoodie-front.png',
+                    back: './assets/hoodie-back.png',
+                    'sleeve-left': './assets/hoodie-sleeve-left.png',
+                    'sleeve-right': './assets/hoodie-sleeve-right.png',
+                    neck: './assets/hoodie-neck.png'
+                }
+            }
+        ];
+
+        // ══════════════════════════════════════════
+        // SHIRT COLORS (background tab)
+        // ══════════════════════════════════════════
+        const SHIRT_COLORS = [
+            { name: 'Negro',    hex: '#0a0a0a' },
+            { name: 'Blanco',   hex: '#ffffff' },
+            { name: 'Rojo',     hex: '#d32f2f' },
+            { name: 'Azul',     hex: '#1565c0' },
+            { name: 'Cyan',     hex: '#00bcd4' },
+            { name: 'Verde',    hex: '#2e7d32' },
+            { name: 'Amarillo', hex: '#F2D953' },
+            { name: 'Naranja',  hex: '#e65100' },
+            { name: 'Rosa',     hex: '#c2185b' },
+            { name: 'Morado',   hex: '#7b2cbf' },
+            { name: 'Gris',     hex: '#546e7a' },
+            { name: 'Navy',     hex: '#1a237e' },
+        ];
+
+        // Canvas bg swatches (legacy - kept for compatibility)
+        document.querySelectorAll('[data-canbg]').forEach(sw => {
+            sw.addEventListener('click', () => {
+                document.querySelectorAll('[data-canbg]').forEach(s => s.classList.remove('active'));
+                sw.classList.add('active');
+                fabricCanvas.setBackgroundColor(sw.dataset.canbg, () => fabricCanvas.renderAll());
+            });
+        });
+
+        // ══════════════════════════════════════════
+        // PRODUCT MANAGEMENT
+        // ══════════════════════════════════════════
+        function previousProduct() {
+            if (state.currentProductIndex > 0) { state.currentProductIndex--; updateProductDisplay(); loadProductView(); }
+        }
+        function nextProduct() {
+            if (state.currentProductIndex < PRODUCTS.length - 1) { state.currentProductIndex++; updateProductDisplay(); loadProductView(); }
+        }
+
+        function updateProductDisplay() {
+            const p = PRODUCTS[state.currentProductIndex];
+            document.getElementById('currentProductName').textContent = p.name;
+            document.getElementById('currentProductType').textContent = p.type;
+            document.getElementById('toolbar-product-name').textContent = p.name.split(' ').pop().toUpperCase();
+            document.getElementById('prevProductBtn').disabled = state.currentProductIndex === 0;
+            document.getElementById('nextProductBtn').disabled = state.currentProductIndex === PRODUCTS.length - 1;
+        }
+
+        function loadProductView() {
+            const p = PRODUCTS[state.currentProductIndex];
+            const path = p.views[state.currentView];
+            fabricCanvas.clear();
+            fabricCanvas.backgroundColor = state.isLightMode ? '#ffffff' : '#ffffff';
+            fabric.Image.fromURL(path, function(img) {
+                const scale = Math.min(fabricCanvas.width / img.width, fabricCanvas.height / img.height) * 0.88;
+                img.scale(scale);
+                img.set({
+                    left: fabricCanvas.width / 2, top: fabricCanvas.height / 2,
+                    originX: 'center', originY: 'center',
+                    selectable: false, evented: false, name: 'shirtBackground'
+                });
+                fabricCanvas.add(img);
+                fabricCanvas.sendToBack(img);
+                fabricCanvas.renderAll();
+            }, { crossOrigin: 'anonymous' });
+        }
+
+        // ══════════════════════════════════════════
+        // FABRIC.JS CANVAS
+        // ══════════════════════════════════════════
+        const fabricCanvas = new fabric.Canvas('editor-canvas', {
+            width: window.innerWidth,
+            height: document.getElementById('canvas-container').clientHeight || 600,
+            backgroundColor: '#ffffff'
+        });
+
+        // Resize canvas to fill full area
+        function resizeCanvas() {
+            const container = document.getElementById('canvas-container');
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            fabricCanvas.setWidth(w);
+            fabricCanvas.setHeight(h);
+            fabricCanvas.renderAll();
+            loadProductView();
+        }
+
+        // ══════════════════════════════════════════
+        // CUSTOM FABRIC CONTROLS OVERLAY
+        // ══════════════════════════════════════════
+        const fabOverlay = document.getElementById('fab-controls-overlay');
+        const fabMove = document.getElementById('fab-move');
+        const fabRotate = document.getElementById('fab-rotate');
+        const fabDelete = document.getElementById('fab-delete');
+        const fabScale = document.getElementById('fab-scale');
+        const CTRL_HALF = 14; // half of 28px button
+
+        function updateFabControls() {
+            const obj = fabricCanvas.getActiveObject();
+            if (!obj || obj.name === 'shirtBackground') {
+                fabOverlay.style.display = 'none';
+                return;
+            }
+            fabOverlay.style.display = 'block';
+
+            // Get bounding box in canvas element coordinates
+            const bound = obj.getBoundingRect(true);
+            const zoom = fabricCanvas.getZoom();
+            const vpt = fabricCanvas.viewportTransform;
+            // Convert to screen coords relative to canvas element
+            const x1 = bound.left;
+            const y1 = bound.top;
+            const x2 = bound.left + bound.width;
+            const y2 = bound.top + bound.height;
+
+            // Position buttons at corners
+            fabMove.style.left = (x1 - CTRL_HALF) + 'px';
+            fabMove.style.top  = (y1 - CTRL_HALF) + 'px';
+
+            fabRotate.style.left = (x2 - CTRL_HALF) + 'px';
+            fabRotate.style.top  = (y1 - CTRL_HALF) + 'px';
+
+            fabDelete.style.left = (x1 - CTRL_HALF) + 'px';
+            fabDelete.style.top  = (y2 - CTRL_HALF) + 'px';
+
+            fabScale.style.left = (x2 - CTRL_HALF) + 'px';
+            fabScale.style.top  = (y2 - CTRL_HALF) + 'px';
+        }
+
+        // Hide native Fabric controls (we use custom ones)
+        fabric.Object.prototype.set({
+            hasControls: false,
+            hasBorders: true,
+            borderColor: '#00d4ff',
+            borderDashArray: [4, 4],
+            borderScaleFactor: 1.5
+        });
+
+        // Update overlay on canvas events
+        ['selection:created','selection:updated','object:moving','object:scaling','object:rotating','object:modified']
+            .forEach(e => fabricCanvas.on(e, updateFabControls));
+        fabricCanvas.on('selection:cleared', () => { fabOverlay.style.display = 'none'; });
+        fabricCanvas.on('after:render', updateFabControls);
+
+        // Move button: drag to move object
+        let isFabMoving = false, fabMoveStartMouse = null, fabMoveStartObjPos = null;
+        fabMove.addEventListener('mousedown', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            const obj = fabricCanvas.getActiveObject();
+            if (!obj) return;
+            isFabMoving = true;
+            fabMoveStartMouse = { x: e.clientX, y: e.clientY };
+            fabMoveStartObjPos = { left: obj.left, top: obj.top };
+            document.body.style.cursor = 'move';
+        });
+        document.addEventListener('mousemove', e => {
+            if (!isFabMoving) return;
+            const obj = fabricCanvas.getActiveObject();
+            if (!obj) return;
+            const zoom = fabricCanvas.getZoom();
+            obj.set({
+                left: fabMoveStartObjPos.left + (e.clientX - fabMoveStartMouse.x) / zoom,
+                top:  fabMoveStartObjPos.top  + (e.clientY - fabMoveStartMouse.y) / zoom
+            });
+            obj.setCoords();
+            fabricCanvas.renderAll();
+        });
+        document.addEventListener('mouseup', () => {
+            if (isFabMoving) { isFabMoving = false; document.body.style.cursor = ''; saveHistory(); }
+        });
+
+        // Rotate button: drag to rotate
+        let isFabRotating = false, fabRotateCenter = null, fabRotateStartAngle = 0, fabRotateObjAngle = 0;
+        fabRotate.addEventListener('mousedown', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            const obj = fabricCanvas.getActiveObject();
+            if (!obj) return;
+            isFabRotating = true;
+            const center = obj.getCenterPoint();
+            const zoom = fabricCanvas.getZoom();
+            const vpt = fabricCanvas.viewportTransform;
+            fabRotateCenter = {
+                x: center.x * zoom + vpt[4],
+                y: center.y * zoom + vpt[5]
+            };
+            const canvasEl = fabricCanvas.upperCanvasEl.getBoundingClientRect();
+            fabRotateCenter.x += canvasEl.left;
+            fabRotateCenter.y += canvasEl.top;
+            fabRotateStartAngle = Math.atan2(e.clientY - fabRotateCenter.y, e.clientX - fabRotateCenter.x);
+            fabRotateObjAngle = obj.angle || 0;
+            document.body.style.cursor = 'grabbing';
+        });
+        document.addEventListener('mousemove', e => {
+            if (!isFabRotating) return;
+            const obj = fabricCanvas.getActiveObject();
+            if (!obj) return;
+            const currentAngle = Math.atan2(e.clientY - fabRotateCenter.y, e.clientX - fabRotateCenter.x);
+            const delta = (currentAngle - fabRotateStartAngle) * (180 / Math.PI);
+            obj.set('angle', fabRotateObjAngle + delta);
+            obj.setCoords();
+            fabricCanvas.renderAll();
+        });
+        document.addEventListener('mouseup', e => {
+            if (isFabRotating) { isFabRotating = false; document.body.style.cursor = ''; saveHistory(); }
+        });
+
+        // Delete button
+        fabDelete.addEventListener('click', e => {
+            e.stopPropagation();
+            const obj = fabricCanvas.getActiveObject();
+            if (obj && obj.name !== 'shirtBackground') {
+                fabricCanvas.remove(obj);
+                const idx = state.layers.findIndex(l => l.fabricObject === obj);
+                if (idx > -1) state.layers.splice(idx, 1);
+                fabricCanvas.discardActiveObject();
+                fabricCanvas.renderAll();
+                updateLayerDisplay();
+                saveHistory();
+                showLayersView();
+            }
+        });
+
+        // Scale button: drag to scale uniformly
+        let isFabScaling = false, fabScaleStartDist = 0, fabScaleStartScale = 1, fabScaleCenter = null;
+        fabScale.addEventListener('mousedown', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            const obj = fabricCanvas.getActiveObject();
+            if (!obj) return;
+            isFabScaling = true;
+            const center = obj.getCenterPoint();
+            const zoom = fabricCanvas.getZoom();
+            const vpt = fabricCanvas.viewportTransform;
+            const canvasEl = fabricCanvas.upperCanvasEl.getBoundingClientRect();
+            fabScaleCenter = {
+                x: center.x * zoom + vpt[4] + canvasEl.left,
+                y: center.y * zoom + vpt[5] + canvasEl.top
+            };
+            fabScaleStartDist = Math.sqrt(Math.pow(e.clientX - fabScaleCenter.x, 2) + Math.pow(e.clientY - fabScaleCenter.y, 2));
+            fabScaleStartScale = obj.scaleX || 1;
+            document.body.style.cursor = 'nwse-resize';
+        });
+        document.addEventListener('mousemove', e => {
+            if (!isFabScaling) return;
+            const obj = fabricCanvas.getActiveObject();
+            if (!obj) return;
+            const dist = Math.sqrt(Math.pow(e.clientX - fabScaleCenter.x, 2) + Math.pow(e.clientY - fabScaleCenter.y, 2));
+            if (fabScaleStartDist < 1) return;
+            const newScale = Math.max(0.05, fabScaleStartScale * (dist / fabScaleStartDist));
+            obj.set({ scaleX: newScale, scaleY: newScale });
+            obj.setCoords();
+            fabricCanvas.renderAll();
+        });
+        document.addEventListener('mouseup', () => {
+            if (isFabScaling) { isFabScaling = false; document.body.style.cursor = ''; saveHistory(); }
+        });
+
+        window.addEventListener('resize', resizeCanvas);
+        setTimeout(resizeCanvas, 100);
+
+        // ══════════════════════════════════════════
+        // CONFIRM DIALOG
+        // ══════════════════════════════════════════
+        let _confirmResolve = null;
+        function showConfirm(message) {
+            return new Promise(resolve => {
+                _confirmResolve = resolve;
+                document.getElementById('confirm-message').textContent = message;
+                document.getElementById('confirm-overlay').classList.add('open');
+            });
+        }
+        document.getElementById('confirm-yes').addEventListener('click', () => {
+            document.getElementById('confirm-overlay').classList.remove('open');
+            if (_confirmResolve) { _confirmResolve(true); _confirmResolve = null; }
+        });
+        document.getElementById('confirm-no').addEventListener('click', () => {
+            document.getElementById('confirm-overlay').classList.remove('open');
+            if (_confirmResolve) { _confirmResolve(false); _confirmResolve = null; }
+        });
+
+        // ══════════════════════════════════════════
+        // FLOATING TOOLBAR
+        // ══════════════════════════════════════════
+        const ftb = document.getElementById('floating-toolbar');
+        let ftbPos = { x: 80, y: 20 };
+        let ftbDragging = false, ftbDragStart = null, ftbPosStart = null;
+
+        function positionFtb() {
+            ftb.style.left = ftbPos.x + 'px';
+            ftb.style.top  = ftbPos.y + 'px';
+        }
+
+        function showFloatingToolbar(type) {
+            if (!type) { ftb.classList.remove('visible'); return; }
+            ftb.classList.add('visible');
+            const imgOnly = ftb.querySelectorAll('.ftb-img-only');
+            if (type === 'text') {
+                imgOnly.forEach(el => el.style.display = 'none');
+            } else {
+                imgOnly.forEach(el => el.style.display = '');
+            }
+            positionFtb();
+        }
+
+        // Drag handle
+        document.getElementById('ftb-drag').addEventListener('mousedown', e => {
+            e.preventDefault();
+            ftbDragging = true;
+            ftbDragStart = { x: e.clientX, y: e.clientY };
+            ftbPosStart  = { ...ftbPos };
+            document.body.style.cursor = 'grabbing';
+        });
+        document.addEventListener('mousemove', e => {
+            if (!ftbDragging) return;
+            ftbPos.x = ftbPosStart.x + (e.clientX - ftbDragStart.x);
+            ftbPos.y = ftbPosStart.y + (e.clientY - ftbDragStart.y);
+            positionFtb();
+        });
+        document.addEventListener('mouseup', () => {
+            if (ftbDragging) { ftbDragging = false; document.body.style.cursor = ''; }
+        });
+
+        // Duplicate
+        document.getElementById('ftb-duplicate').addEventListener('click', () => {
+            const obj = fabricCanvas.getActiveObject();
+            if (!obj) return;
+            obj.clone(cloned => {
+                cloned.set({ left: obj.left + 20, top: obj.top + 20 });
+                fabricCanvas.add(cloned);
+                fabricCanvas.setActiveObject(cloned);
+                fabricCanvas.renderAll();
+                const origLayer = state.layers.find(l => l.fabricObject === obj);
+                const newLayer = {
+                    id: Date.now(),
+                    type: origLayer?.type || 'image',
+                    content: origLayer?.content,
+                    name: (origLayer?.name || 'Copia') + ' (copia)',
+                    thumb: origLayer?.thumb,
+                    fabricObject: cloned
+                };
+                if (origLayer?.type === 'text') cloned.on('changed', () => updateLayerDisplay());
+                state.layers.push(newLayer);
+                updateLayerDisplay();
+                saveHistory();
+            });
+        });
+
+        // Flip H
+        document.getElementById('ftb-flip-h').addEventListener('click', () => {
+            const obj = fabricCanvas.getActiveObject();
+            if (!obj) return;
+            obj.set('flipX', !obj.flipX);
+            fabricCanvas.renderAll();
+            saveHistory();
+        });
+
+        // Flip V
+        document.getElementById('ftb-flip-v').addEventListener('click', () => {
+            const obj = fabricCanvas.getActiveObject();
+            if (!obj) return;
+            obj.set('flipY', !obj.flipY);
+            fabricCanvas.renderAll();
+            saveHistory();
+        });
+
+        // Show/hide toolbar on selection
+        fabricCanvas.on('selection:created', e => {
+            const obj = e.selected?.[0];
+            if (!obj || obj.name === 'shirtBackground') return;
+            showFloatingToolbar(obj.type === 'i-text' ? 'text' : 'image');
+        });
+        fabricCanvas.on('selection:updated', e => {
+            const obj = e.selected?.[0];
+            if (!obj || obj.name === 'shirtBackground') return;
+            showFloatingToolbar(obj.type === 'i-text' ? 'text' : 'image');
+        });
+        fabricCanvas.on('selection:cleared', () => showFloatingToolbar(null));
+
+        // Mouse wheel zoom
+        fabricCanvas.on('mouse:wheel', function(opt) {
+            const delta = opt.e.deltaY;
+            let zoom = fabricCanvas.getZoom();
+            zoom *= 0.999 ** delta;
+            zoom = Math.max(0.4, Math.min(zoom, 3));
+            fabricCanvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+            state.zoom = zoom;
+            document.getElementById('zoom-level').textContent = Math.round(zoom * 100) + '%';
+            opt.e.preventDefault();
+            opt.e.stopPropagation();
+        });
+
+        updateProductDisplay();
+        loadProductView();
+
+        // Initialize history after first render
+        setTimeout(() => { saveHistory(); updateHistoryButtons(); }, 200);
+
+        // ══════════════════════════════════════════
+        // THREE.JS 3D PREVIEW
+        // ══════════════════════════════════════════
+        let scene, camera, renderer, shirtMesh;
+
+        function init3DPreview(containerId) {
+            const container = document.getElementById(containerId);
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a1a);
+
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+            camera.position.z = 3;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            container.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(1, 1, 1);
+            scene.add(dirLight);
+
+            const geometry = new THREE.CylinderGeometry(0.8, 1, 2, 32);
+            const material = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.8, metalness: 0.1 });
+            shirtMesh = new THREE.Mesh(geometry, material);
+            scene.add(shirtMesh);
+
+            function animate() {
+                requestAnimationFrame(animate);
+                shirtMesh.rotation.y += 0.005;
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            let isDragging = false;
+            let prevX = 0;
+            container.addEventListener('mousedown', () => isDragging = true);
+            container.addEventListener('mouseup', () => isDragging = false);
+            container.addEventListener('mousemove', e => {
+                if (isDragging) shirtMesh.rotation.y += (e.clientX - prevX) * 0.01;
+                prevX = e.clientX;
+            });
+        }
+
+        // ══════════════════════════════════════════
+        // LAYER MANAGEMENT
+        // ══════════════════════════════════════════
+        function addLayer(type, content, options = {}) {
+            const layer = { id: Date.now(), type, content, fabricObject: null, ...options };
+
+            if (type === 'text') {
+                const text = new fabric.IText(content || 'PLAYER', {
+                    left: fabricCanvas.width / 2, top: fabricCanvas.height / 2,
+                    originX: 'center', originY: 'center',
+                    fontSize: state.fontSize,
+                    fill: state.textColor,
+                    fontFamily: state.fontFamily,
+                    fontWeight: '600',
+                    charSpacing: state.letterSpacing
+                });
+                fabricCanvas.add(text);
+                fabricCanvas.setActiveObject(text);
+                layer.fabricObject = text;
+                text.on('changed', () => { updateLayerDisplay(); });
+            } else if (type === 'image') {
+                // Images are added via addImageToCanvas() which handles thumbs
+                addImageToCanvas(content, options.name || 'Imagen');
+                return layer; // early return, addImageToCanvas handles layers push
+            } else if (type === 'clipart') {
+                // handled by addClipart()
+            }
+
+            if (type !== 'image' && type !== 'clipart') {
+                state.layers.push(layer);
+                updateLayerDisplay();
+                saveHistory();
+            }
+            if (type === 'text') {
+                showTextEditor();
+                syncTextEditorToObject(layer.fabricObject);
+            }
+            return layer;
+        }
+
+        function removeLayer(id) {
+            const idx = state.layers.findIndex(l => l.id === id);
+            if (idx > -1) {
+                const layer = state.layers[idx];
+                if (layer.fabricObject) fabricCanvas.remove(layer.fabricObject);
+                state.layers.splice(idx, 1);
+                updateLayerDisplay();
+            }
+        }
+
+        function updateLayerDisplay() {
+            const container = document.getElementById('layers-list');
+            container.innerHTML = '';
+            // Show layers in reverse order (top layer first visually)
+            const reversed = [...state.layers].reverse();
+            reversed.forEach((layer, visualIndex) => {
+                const realIndex = state.layers.indexOf(layer);
+                const div = document.createElement('div');
+                div.className = 'layer-item' + (state.selectedLayer === layer.id ? ' active' : '');
+                div.draggable = true;
+                div.dataset.layerId = layer.id;
+
+                // Build preview element
+                let previewHTML = '';
+                if (layer.type === 'text') {
+                    previewHTML = '<div class="layer-preview" style="font-size:13px;font-weight:700;color:#555;">Tt</div>';
+                } else if (layer.thumb) {
+                    previewHTML = `<div class="layer-preview"><img src="${layer.thumb}" alt=""></div>`;
+                } else {
+                    previewHTML = '<div class="layer-preview" style="font-size:16px;">🖼</div>';
+                }
+
+                const labelText = layer.type === 'text'
+                    ? (layer.fabricObject?.text || 'Texto')
+                    : (layer.name || 'Imagen');
+
+                div.innerHTML = `
+                    <div class="layer-drag-handle" title="Arrastrar para reordenar">⠿</div>
+                    ${previewHTML}
+                    <div class="layer-info">
+                        <div class="layer-name">
+                            <input type="text" value="${labelText.replace(/"/g,'&quot;')}"
+                                   onchange="updateLayerContent(${layer.id}, this.value)">
+                        </div>
+                        <div class="layer-type">${layer.type}</div>
+                    </div>
+                    <div class="layer-actions">
+                        <button class="layer-action-btn" onclick="selectLayer(${layer.id})" title="Editar">
+                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </button>
+                        <button class="layer-action-btn" onclick="removeLayer(${layer.id})" title="Eliminar">
+                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <polyline points="3,6 5,6 21,6"/>
+                                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                            </svg>
+                        </button>
+                    </div>`;
+
+                // Click to select (not on input/button)
+                div.addEventListener('click', e => {
+                    if (e.target.tagName !== 'INPUT' && !e.target.closest('.layer-actions') && !e.target.closest('.layer-drag-handle'))
+                        selectLayer(layer.id);
+                });
+
+                // Drag to reorder
+                div.addEventListener('dragstart', e => {
+                    e.dataTransfer.setData('layerId', layer.id);
+                    div.classList.add('dragging');
+                });
+                div.addEventListener('dragend', () => {
+                    div.classList.remove('dragging');
+                    container.querySelectorAll('.layer-item').forEach(el => {
+                        el.classList.remove('drag-over-top','drag-over-bottom');
+                    });
+                });
+                div.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    const rect = div.getBoundingClientRect();
+                    const mid = rect.top + rect.height / 2;
+                    container.querySelectorAll('.layer-item').forEach(el => el.classList.remove('drag-over-top','drag-over-bottom'));
+                    div.classList.add(e.clientY < mid ? 'drag-over-top' : 'drag-over-bottom');
+                });
+                div.addEventListener('drop', e => {
+                    e.preventDefault();
+                    const draggedId = parseInt(e.dataTransfer.getData('layerId'));
+                    const targetId = layer.id;
+                    if (draggedId === targetId) return;
+
+                    const draggedIdx = state.layers.findIndex(l => l.id === draggedId);
+                    const targetIdx = state.layers.findIndex(l => l.id === targetId);
+                    if (draggedIdx < 0 || targetIdx < 0) return;
+
+                    const rect = div.getBoundingClientRect();
+                    const mid = rect.top + rect.height / 2;
+                    const insertAfter = e.clientY >= mid;
+
+                    // Remove dragged
+                    const [moved] = state.layers.splice(draggedIdx, 1);
+                    // Find new target index after removal
+                    const newTargetIdx = state.layers.findIndex(l => l.id === targetId);
+                    const insertAt = insertAfter ? newTargetIdx + 1 : newTargetIdx;
+                    state.layers.splice(insertAt, 0, moved);
+
+                    // Sync z-order on canvas
+                    state.layers.forEach((l, i) => {
+                        if (l.fabricObject) fabricCanvas.moveTo(l.fabricObject, i);
+                    });
+                    fabricCanvas.renderAll();
+                    saveHistory();
+                    updateLayerDisplay();
+                });
+
+                container.appendChild(div);
+            });
+        }
+
+        function selectLayer(id) {
+            state.selectedLayer = id;
+            const layer = state.layers.find(l => l.id === id);
+            if (layer?.fabricObject) {
+                fabricCanvas.setActiveObject(layer.fabricObject);
+                fabricCanvas.renderAll();
+                // If text, open editor
+                if (layer.type === 'text') {
+                    showTextEditor();
+                    syncTextEditorToObject(layer.fabricObject);
+                }
+            }
+            updateLayerDisplay();
+        }
+
+        function updateLayerContent(id, value) {
+            const layer = state.layers.find(l => l.id === id);
+            if (layer?.fabricObject && (layer.type === 'text' || layer.type === 'number')) {
+                layer.fabricObject.set('text', value);
+                fabricCanvas.renderAll();
+            }
+        }
+
+        // ══════════════════════════════════════════
+        // UI EVENTS
+        // ══════════════════════════════════════════
+
+        // Tab switching
+        document.querySelectorAll('.tool-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+                // reset layers view
+                if (tab.dataset.tab === 'layers') showLayersView();
+            });
+        });
+
+        // Footer view switching
+        document.querySelectorAll('.footer-view-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.footer-view-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.currentView = btn.dataset.view;
+                loadProductView();
+            });
+        });
+
+        // ── Layers / Add element navigation ──
+        function showLayersView() {
+            document.getElementById('layers-view').style.display = '';
+            document.getElementById('add-element-menu').style.display = 'none';
+            document.getElementById('text-editor').style.display = 'none';
+        }
+
+        function showAddElementMenu() {
+            document.getElementById('layers-view').style.display = 'none';
+            document.getElementById('add-element-menu').style.display = '';
+            document.getElementById('text-editor').style.display = 'none';
+        }
+
+        function showTextEditor() {
+            document.getElementById('layers-view').style.display = 'none';
+            document.getElementById('add-element-menu').style.display = 'none';
+            document.getElementById('text-editor').style.display = '';
+            // Switch to layers tab
+            document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector('.tool-tab[data-tab="layers"]').classList.add('active');
+            document.getElementById('tab-layers').classList.add('active');
+        }
+
+        document.getElementById('add-layer').addEventListener('click', showAddElementMenu);
+        document.getElementById('back-to-layers').addEventListener('click', showLayersView);
+        document.getElementById('back-from-text').addEventListener('click', showLayersView);
+        document.getElementById('add-more-text-btn').addEventListener('click', () => {
+            addLayer('text', 'PLAYER');
+        });
+
+        // Menu options
+        document.getElementById('menu-add-text').addEventListener('click', () => {
+            addLayer('text', 'PLAYER');
+            showLayersView();
+        });
+
+        document.getElementById('menu-upload-file').addEventListener('click', () => {
+            document.getElementById('file-input').click();
+        });
+
+        document.getElementById('menu-cliparts').addEventListener('click', () => {
+            showLayersView();
+            // Switch to Cliparts tab
+            document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector('.tool-tab[data-tab="cliparts"]').classList.add('active');
+            document.getElementById('tab-cliparts').classList.add('active');
+        });
+
+        document.getElementById('menu-fill-bg').addEventListener('click', () => {
+            showLayersView();
+            document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector('.tool-tab[data-tab="background"]').classList.add('active');
+            document.getElementById('tab-background').classList.add('active');
+        });
+
+        // ══════════════════════════════════════════
+        // UPLOADS: grid + PDF→PNG conversion
+        // ══════════════════════════════════════════
+        // In-memory store of uploaded files (persists for session)
+        const uploadedFiles = []; // { id, name, dataUrl, thumb }
+
+        function renderUploadsGrid() {
+            const grid = document.getElementById('uploads-grid');
+            const empty = document.getElementById('uploads-empty');
+            grid.innerHTML = '';
+            if (uploadedFiles.length === 0) {
+                empty.style.display = '';
+                return;
+            }
+            empty.style.display = 'none';
+            uploadedFiles.forEach(f => {
+                const cell = document.createElement('div');
+                cell.className = 'upload-thumb';
+                cell.title = f.name;
+
+                const img = document.createElement('img');
+                img.src = f.thumb || f.dataUrl;
+                cell.appendChild(img);
+
+                if (f.page != null) {
+                    const badge = document.createElement('div');
+                    badge.className = 'pdf-page-badge';
+                    badge.textContent = 'p.' + f.page;
+                    cell.appendChild(badge);
+                }
+
+                const nameEl = document.createElement('div');
+                nameEl.className = 'upload-thumb-name';
+                nameEl.textContent = f.name;
+                cell.appendChild(nameEl);
+
+                const delBtn = document.createElement('button');
+                delBtn.className = 'upload-thumb-del';
+                delBtn.innerHTML = '×';
+                delBtn.title = 'Eliminar';
+                delBtn.addEventListener('click', async e => {
+                    e.stopPropagation();
+                    const ok = await showConfirm(`¿Quieres eliminar "${f.name}" de tus archivos?`);
+                    if (!ok) return;
+                    const idx = uploadedFiles.indexOf(f);
+                    if (idx > -1) uploadedFiles.splice(idx, 1);
+                    renderUploadsGrid();
+                });
+                cell.appendChild(delBtn);
+
+                // Click to add to canvas
+                cell.addEventListener('click', e => {
+                    if (e.target === delBtn || e.target.closest('.upload-thumb-del')) return;
+                    addImageToCanvas(f.dataUrl, f.name);
+                });
+
+                grid.appendChild(cell);
+            });
+        }
+
+        function addImageToCanvas(dataUrl, name) {
+            fabric.Image.fromURL(dataUrl, function(img) {
+                img.set({ left: fabricCanvas.width/2, top: fabricCanvas.height/2, originX:'center', originY:'center' });
+                img.scaleToWidth(Math.min(200, fabricCanvas.width * 0.3));
+                fabricCanvas.add(img);
+                fabricCanvas.setActiveObject(img);
+                fabricCanvas.renderAll();
+                // Generate thumbnail
+                const thumbCanvas = document.createElement('canvas');
+                thumbCanvas.width = 72; thumbCanvas.height = 72;
+                const ctx = thumbCanvas.getContext('2d');
+                const tempImg = new Image();
+                tempImg.onload = () => {
+                    const s = Math.min(72 / tempImg.width, 72 / tempImg.height);
+                    const w = tempImg.width * s, h = tempImg.height * s;
+                    ctx.drawImage(tempImg, (72-w)/2, (72-h)/2, w, h);
+                    const thumb = thumbCanvas.toDataURL('image/jpeg', 0.7);
+                    const layer = { id: Date.now(), type: 'image', content: dataUrl, name: name, thumb, fabricObject: img };
+                    state.layers.push(layer);
+                    updateLayerDisplay();
+                    saveHistory();
+                };
+                tempImg.src = dataUrl;
+            });
+        }
+
+        async function handleFileUpload(file) {
+            if (!file) return;
+
+            if (file.type === 'application/pdf') {
+                await processPDF(file);
+            } else {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    const dataUrl = ev.target.result;
+                    const name = file.name.replace(/\.[^.]+$/, '');
+                    // Save to uploads grid
+                    uploadedFiles.push({ id: Date.now(), name, dataUrl, thumb: dataUrl });
+                    renderUploadsGrid();
+                    showUploadsTab();
+                    // Add to canvas immediately
+                    addImageToCanvas(dataUrl, name);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function showUploadsTab() {
+            document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector('.tool-tab[data-tab="uploads"]').classList.add('active');
+            document.getElementById('tab-uploads').classList.add('active');
+        }
+
+        async function processPDF(file) {
+            // Load pdf.js dynamically if not loaded
+            if (!window.pdfjsLib) {
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+                window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+                    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            }
+
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const totalPages = pdf.numPages;
+
+            if (totalPages > 3) {
+                alert(`Este PDF tiene ${totalPages} páginas. Por favor sube un PDF de máximo 3 páginas.`);
+                return;
+            }
+
+            const baseName = file.name.replace(/\.pdf$/i, '');
+            for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const viewport = page.getViewport({ scale: 2 });
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                const ctx = canvas.getContext('2d');
+                await page.render({ canvasContext: ctx, viewport }).promise;
+                const dataUrl = canvas.toDataURL('image/png');
+                const name = totalPages > 1 ? `${baseName} p.${pageNum}` : baseName;
+                uploadedFiles.push({ id: Date.now() + pageNum, name, dataUrl, thumb: dataUrl, page: totalPages > 1 ? pageNum : null });
+            }
+            renderUploadsGrid();
+            showUploadsTab();
+        }
+
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = src;
+                s.onload = resolve;
+                s.onerror = reject;
+                document.head.appendChild(s);
+            });
+        }
+
+        // Upload button
+        document.getElementById('upload-btn').addEventListener('click', () => document.getElementById('file-input-uploads').click());
+        document.getElementById('file-input-uploads').addEventListener('change', async e => {
+            const file = e.target.files[0];
+            if (file) await handleFileUpload(file);
+            e.target.value = '';
+        });
+
+        // Also handle from "Subir archivo" in add-element menu
+        document.getElementById('file-input').addEventListener('change', async e => {
+            const file = e.target.files[0];
+            if (file) await handleFileUpload(file);
+            e.target.value = '';
+            showLayersView();
+        });
+        // Text tab button
+        document.getElementById('add-text-btn').addEventListener('click', () => addLayer('text', 'PLAYER'));
+
+        // ── Text editor: font selector ──
+        document.getElementById('font-selector-toggle').addEventListener('click', () => {
+            document.getElementById('font-dropdown').classList.toggle('open');
+        });
+
+        document.querySelectorAll('.font-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                const font = opt.dataset.font;
+                document.querySelectorAll('.font-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                document.getElementById('font-selector-label').textContent = font;
+                document.getElementById('font-selector-label').style.fontFamily = font;
+                document.getElementById('font-dropdown').classList.remove('open');
+                state.fontFamily = font;
+                const obj = fabricCanvas.getActiveObject();
+                if (obj?.type === 'i-text') { obj.set('fontFamily', font); fabricCanvas.renderAll(); saveHistory(); }
+            });
+        });
+
+        // Close font dropdown on outside click
+        document.addEventListener('click', e => {
+            if (!e.target.closest('#font-selector-toggle') && !e.target.closest('#font-dropdown')) {
+                document.getElementById('font-dropdown')?.classList.remove('open');
+            }
+        });
+
+        // ── Text editor: color swatches ──
+        document.querySelectorAll('#text-color-row .color-swatch-sm').forEach(swatch => {
+            swatch.addEventListener('click', () => {
+                document.querySelectorAll('#text-color-row .color-swatch-sm').forEach(s => s.classList.remove('active'));
+                swatch.classList.add('active');
+                state.textColor = swatch.dataset.color;
+                const obj = fabricCanvas.getActiveObject();
+                if (obj?.type === 'i-text') { obj.set('fill', state.textColor); fabricCanvas.renderAll(); saveHistory(); }
+            });
+        });
+
+        // ── Color picker popup (spectrum) ──
+        let currentHue = 0;
+        let pickerSaturation = 1, pickerBrightness = 1;
+
+        function hsvToHex(h, s, v) {
+            h = h / 360; let r, g, b;
+            const i = Math.floor(h * 6), f = h * 6 - i, p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+            switch (i % 6) {
+                case 0: r=v; g=t; b=p; break; case 1: r=q; g=v; b=p; break;
+                case 2: r=p; g=v; b=t; break; case 3: r=p; g=q; b=v; break;
+                case 4: r=t; g=p; b=v; break; case 5: r=v; g=p; b=q; break;
+            }
+            return '#' + [r,g,b].map(x => Math.round(x*255).toString(16).padStart(2,'0')).join('');
+        }
+
+        function drawSpectrum() {
+            const canvas = document.getElementById('color-spectrum-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width, h = canvas.height;
+            const hueColor = hsvToHex(currentHue, 1, 1);
+            const gradH = ctx.createLinearGradient(0, 0, w, 0);
+            gradH.addColorStop(0, '#fff'); gradH.addColorStop(1, hueColor);
+            ctx.fillStyle = gradH; ctx.fillRect(0, 0, w, h);
+            const gradV = ctx.createLinearGradient(0, 0, 0, h);
+            gradV.addColorStop(0, 'rgba(0,0,0,0)'); gradV.addColorStop(1, '#000');
+            ctx.fillStyle = gradV; ctx.fillRect(0, 0, w, h);
+        }
+
+        function updateColorPreview() {
+            const hex = hsvToHex(currentHue, pickerSaturation, pickerBrightness);
+            const box = document.getElementById('color-preview-box');
+            const inp = document.getElementById('color-hex-input');
+            if (box) box.style.background = hex;
+            if (inp) inp.value = hex;
+        }
+
+        document.getElementById('text-color-custom').addEventListener('click', () => {
+            const popup = document.getElementById('text-color-popup');
+            popup.classList.toggle('open');
+            if (popup.classList.contains('open')) { drawSpectrum(); updateColorPreview(); }
+        });
+
+        // Hue bar
+        const hueBar = document.getElementById('color-hue-bar');
+        if (hueBar) {
+            hueBar.addEventListener('click', e => {
+                const rect = hueBar.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                currentHue = pct * 360;
+                document.getElementById('hue-cursor').style.left = (pct * 100) + '%';
+                drawSpectrum(); updateColorPreview();
+            });
+        }
+
+        // Spectrum click
+        const specCanvas = document.getElementById('color-spectrum-canvas');
+        if (specCanvas) {
+            specCanvas.addEventListener('click', e => {
+                const rect = specCanvas.getBoundingClientRect();
+                pickerSaturation = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                pickerBrightness = Math.max(0, Math.min(1, 1 - (e.clientY - rect.top) / rect.height));
+                updateColorPreview();
+            });
+        }
+
+        document.getElementById('color-ok-btn')?.addEventListener('click', () => {
+            const hex = document.getElementById('color-hex-input').value;
+            state.textColor = hex;
+            document.querySelectorAll('#text-color-row .color-swatch-sm').forEach(s => s.classList.remove('active'));
+            const obj = fabricCanvas.getActiveObject();
+            if (obj?.type === 'i-text') { obj.set('fill', hex); fabricCanvas.renderAll(); saveHistory(); }
+            document.getElementById('text-color-popup').classList.remove('open');
+        });
+
+        document.getElementById('color-hex-input')?.addEventListener('input', e => {
+            if (/^#[0-9a-f]{6}$/i.test(e.target.value)) {
+                document.getElementById('color-preview-box').style.background = e.target.value;
+            }
+        });
+
+        // Close popup on outside click
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.color-picker-full-wrapper')) {
+                document.getElementById('text-color-popup')?.classList.remove('open');
+            }
+        });
+
+        // ── Text size: number input + hold-to-repeat steppers ──
+        function applyTextSize(val) {
+            val = Math.max(8, Math.min(200, parseInt(val) || 48));
+            document.getElementById('text-size-num').value = val;
+            state.fontSize = val;
+            const obj = fabricCanvas.getActiveObject();
+            if (obj?.type === 'i-text') { obj.set('fontSize', val); fabricCanvas.renderAll(); }
+        }
+
+        document.getElementById('text-size-num')?.addEventListener('change', e => {
+            applyTextSize(e.target.value);
+            saveHistory();
+        });
+
+        // Hold-to-repeat for size steppers — starts slow, then accelerates gently
+        function makeHoldButton(btnId, getVal, step) {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            let holdTimer = null;
+            let repeatTimer = null;
+            let speed = 150; // ms between repeats
+
+            function doStep() {
+                applyTextSize(getVal() + step);
+            }
+
+            function startHold() {
+                doStep(); // immediate first step
+                holdTimer = setTimeout(() => {
+                    repeatTimer = setInterval(() => {
+                        doStep();
+                    }, speed);
+                }, 400); // delay before auto-repeat
+            }
+
+            function stopHold() {
+                clearTimeout(holdTimer);
+                clearInterval(repeatTimer);
+                holdTimer = null;
+                repeatTimer = null;
+                saveHistory();
+            }
+
+            btn.addEventListener('mousedown', startHold);
+            btn.addEventListener('mouseup', stopHold);
+            btn.addEventListener('mouseleave', stopHold);
+            btn.addEventListener('touchstart', e => { e.preventDefault(); startHold(); });
+            btn.addEventListener('touchend', stopHold);
+        }
+
+        makeHoldButton('size-up', () => state.fontSize, +1);
+        makeHoldButton('size-down', () => state.fontSize, -1);
+
+        // ── Letter spacing: -200 to +600, slider midpoint = 0 ──
+        // Map slider 0-800 → charSpacing -200 to +600 (midpoint 400 → 0)
+        function sliderToSpacing(sliderVal) { return parseInt(sliderVal) - 200; }
+        function spacingToSlider(spacing) { return spacing + 200; }
+
+        function applyLetterSpacing(spacingVal) {
+            spacingVal = Math.max(-200, Math.min(600, parseInt(spacingVal) || 0));
+            const sliderVal = spacingToSlider(spacingVal);
+            document.getElementById('letter-spacing').value = sliderVal;
+            document.getElementById('spacing-val').textContent = spacingVal;
+            state.letterSpacing = spacingVal;
+            const obj = fabricCanvas.getActiveObject();
+            if (obj?.type === 'i-text') { obj.set('charSpacing', spacingVal); fabricCanvas.renderAll(); saveHistory(); }
+        }
+
+        document.getElementById('letter-spacing')?.addEventListener('input', e => {
+            applyLetterSpacing(sliderToSpacing(e.target.value));
+        });
+        document.getElementById('spacing-minus')?.addEventListener('click', () => applyLetterSpacing((state.letterSpacing || 0) - 10));
+        document.getElementById('spacing-plus')?.addEventListener('click', () => applyLetterSpacing((state.letterSpacing || 0) + 10));
+
+        // ── Delete selected text layer ──
+        document.getElementById('delete-text-layer')?.addEventListener('click', () => {
+            const obj = fabricCanvas.getActiveObject();
+            if (obj) {
+                fabricCanvas.remove(obj);
+                const idx = state.layers.findIndex(l => l.fabricObject === obj);
+                if (idx > -1) state.layers.splice(idx, 1);
+                fabricCanvas.renderAll();
+                updateLayerDisplay();
+                saveHistory();
+                showLayersView();
+            }
+        });
+
+        // ── Cliparts ──
+        const CLIPART_CATS = {
+            flags: 'Banderas',
+            clipart: 'Clipart',
+            geometric: 'Geometrías'
+        };
+        let currentClipartCat = null;
+
+        document.querySelectorAll('.clipart-cat-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const cat = btn.dataset.cat;
+                currentClipartCat = cat;
+                document.getElementById('clipart-cats').style.display = 'none';
+                document.getElementById('clipart-grid').classList.add('active');
+                // Update breadcrumb
+                document.getElementById('clipart-breadcrumb').innerHTML =
+                    `<span data-nav="root" style="cursor:pointer;">Todas las categorías</span>
+                     <span class="sep">›</span>
+                     <span style="color:#333;">${CLIPART_CATS[cat]}</span>`;
+                document.querySelector('#clipart-breadcrumb span[data-nav="root"]').addEventListener('click', resetClipartNav);
+                // Load SVGs from assets/cliparts/{cat}/
+                loadClipartGrid(cat);
+            });
+        });
+
+        function resetClipartNav() {
+            currentClipartCat = null;
+            document.getElementById('clipart-cats').style.display = '';
+            document.getElementById('clipart-grid').classList.remove('active');
+            document.getElementById('clipart-empty').style.display = 'none';
+            document.getElementById('clipart-breadcrumb').innerHTML =
+                `<span data-nav="root">Todas las categorías</span>`;
+        }
+
+        // Known clipart files per category — add filenames as you add SVGs
+        const CLIPART_FILES = {
+            flags: [],    // e.g. ['es.svg','fr.svg']
+            clipart: [],
+            geometric: []
+        };
+
+        function loadClipartGrid(cat) {
+            const grid = document.getElementById('clipart-grid');
+            const empty = document.getElementById('clipart-empty');
+            grid.innerHTML = '';
+            const files = CLIPART_FILES[cat] || [];
+            if (files.length === 0) {
+                empty.style.display = '';
+                return;
+            }
+            empty.style.display = 'none';
+            files.forEach(file => {
+                const item = document.createElement('div');
+                item.className = 'clipart-item';
+                const img = document.createElement('img');
+                img.src = `assets/cliparts/${cat}/${file}`;
+                img.alt = file;
+                item.appendChild(img);
+                item.addEventListener('click', () => addClipart(`assets/cliparts/${cat}/${file}`));
+                grid.appendChild(item);
+            });
+        }
+
+        function addClipart(url) {
+            fabric.loadSVGFromURL(url, (objects, options) => {
+                const svg = fabric.util.groupSVGElements(objects, options);
+                svg.set({ left: fabricCanvas.width / 2, top: fabricCanvas.height / 2, originX: 'center', originY: 'center' });
+                svg.scaleToWidth(120);
+                fabricCanvas.add(svg);
+                fabricCanvas.setActiveObject(svg);
+                fabricCanvas.renderAll();
+                // Generate small thumbnail from SVG
+                const thumbCanvas = document.createElement('canvas');
+                thumbCanvas.width = 72; thumbCanvas.height = 72;
+                const tctx = thumbCanvas.getContext('2d');
+                const tempImg = new Image();
+                tempImg.onload = () => {
+                    const s = Math.min(72/tempImg.width, 72/tempImg.height);
+                    tctx.drawImage(tempImg, (72-tempImg.width*s)/2, (72-tempImg.height*s)/2, tempImg.width*s, tempImg.height*s);
+                };
+                tempImg.src = url;
+                const thumb = url; // Use url as thumb for SVGs
+                const layer = { id: Date.now(), type: 'clipart', content: url, name: url.split('/').pop(), thumb, fabricObject: svg };
+                state.layers.push(layer);
+                updateLayerDisplay();
+                saveHistory();
+            });
+        }
+
+        // Clipart search (filter category buttons for now)
+        document.getElementById('clipart-search')?.addEventListener('input', e => {
+            const q = e.target.value.toLowerCase();
+            document.querySelectorAll('.clipart-cat-btn').forEach(btn => {
+                btn.style.display = btn.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        });
+
+        // ── BG Subtabs ──
+        document.querySelectorAll('.bg-subtab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.bg-subtab').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.bg-subtab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('bgtab-' + btn.dataset.bgtab).classList.add('active');
+            });
+        });
+
+        // BG upload (sets shirt background image)
+        document.getElementById('bg-upload-btn')?.addEventListener('click', () => document.getElementById('bg-file-input').click());
+        document.getElementById('bg-file-input')?.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    fabricCanvas.setBackgroundImage(ev.target.result, fabricCanvas.renderAll.bind(fabricCanvas), {
+                        scaleX: fabricCanvas.width / 800, scaleY: fabricCanvas.height / 600
+                    });
+                    saveHistory();
+                };
+                reader.readAsDataURL(file);
+            }
+            e.target.value = '';
+        });
+
+        // BG gallery — shirt color swatches
+        document.querySelectorAll('.bg-gallery-item[data-shirt-color]').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.bg-gallery-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                state.shirtColor = item.dataset.shirtColor;
+                applyShirtColor(state.shirtColor);
+            });
+        });
+
+        function applyShirtColor(color) {
+            const objs = fabricCanvas.getObjects();
+            const shirt = objs.find(o => o.name === 'shirtBackground');
+            if (shirt) {
+                shirt.filters = [new fabric.Image.filters.BlendColor({ color, mode: 'multiply', alpha: 0.95 })];
+                shirt.applyFilters();
+                fabricCanvas.renderAll();
+                saveHistory();
+            }
+        }
+
+        // ── Fabric canvas: select event → show text editor ──
+        fabricCanvas.on('selection:created', onFabricSelect);
+        fabricCanvas.on('selection:updated', onFabricSelect);
+        fabricCanvas.on('selection:cleared', () => {
+            state.selectedLayer = null;
+            updateLayerDisplay();
+            // If text editor was showing, go back to layers
+            if (document.getElementById('text-editor').style.display !== 'none') showLayersView();
+        });
+
+        function onFabricSelect(e) {
+            const obj = e.selected?.[0] || fabricCanvas.getActiveObject();
+            if (!obj) return;
+            const layer = state.layers.find(l => l.fabricObject === obj);
+            if (layer) state.selectedLayer = layer.id;
+            updateLayerDisplay();
+            if (obj.type === 'i-text') {
+                showTextEditor();
+                syncTextEditorToObject(obj);
+            }
+        }
+
+        function syncTextEditorToObject(obj) {
+            if (!obj) return;
+            document.getElementById('text-content').value = obj.text || '';
+            const sz = Math.round(obj.fontSize || 48);
+            document.getElementById('text-size-num').value = sz;
+            state.fontSize = sz;
+            const spacing = obj.charSpacing || 0;
+            state.letterSpacing = spacing;
+            document.getElementById('letter-spacing').value = spacingToSlider(spacing);
+            document.getElementById('spacing-val').textContent = spacing;
+            // Font
+            const font = obj.fontFamily || 'Barlow';
+            document.getElementById('font-selector-label').textContent = font;
+            document.getElementById('font-selector-label').style.fontFamily = font;
+            document.querySelectorAll('.font-option').forEach(o => {
+                o.classList.toggle('selected', o.dataset.font === font);
+            });
+        }
+
+        // ── Text content input ──
+        document.getElementById('text-content')?.addEventListener('input', e => {
+            const obj = fabricCanvas.getActiveObject();
+            if (obj?.type === 'i-text') { obj.set('text', e.target.value); fabricCanvas.renderAll(); }
+        });
+        document.getElementById('text-content')?.addEventListener('change', () => saveHistory());
+
+        // Zoom buttons
+        document.getElementById('zoom-in').addEventListener('click', () => {
+            state.zoom = Math.min(state.zoom + 0.1, 3);
+            fabricCanvas.setZoom(state.zoom);
+            document.getElementById('zoom-level').textContent = Math.round(state.zoom * 100) + '%';
+        });
+        document.getElementById('zoom-out').addEventListener('click', () => {
+            state.zoom = Math.max(state.zoom - 0.1, 0.4);
+            fabricCanvas.setZoom(state.zoom);
+            document.getElementById('zoom-level').textContent = Math.round(state.zoom * 100) + '%';
+        });
+
+        // Undo / Redo / Reset
+        // ══════════════════════════════════════════
+        // UNDO / REDO — real history stack
+        // ══════════════════════════════════════════
+        const historyStack = [];
+        let historyIndex = -1;
+        let isHistoryAction = false;
+
+        function saveHistory() {
+            if (isHistoryAction) return;
+            // Trim forward history if we're mid-stack
+            historyStack.splice(historyIndex + 1);
+            historyStack.push(JSON.stringify(fabricCanvas.toJSON(['name'])));
+            historyIndex = historyStack.length - 1;
+            // Cap stack at 50
+            if (historyStack.length > 50) { historyStack.shift(); historyIndex--; }
+            updateHistoryButtons();
+        }
+
+        function updateHistoryButtons() {
+            document.getElementById('undo').disabled = historyIndex <= 0;
+            document.getElementById('redo').disabled = historyIndex >= historyStack.length - 1;
+        }
+
+        function loadHistory(index) {
+            if (index < 0 || index >= historyStack.length) return;
+            isHistoryAction = true;
+            historyIndex = index;
+            fabricCanvas.loadFromJSON(historyStack[index], () => {
+                fabricCanvas.renderAll();
+                isHistoryAction = false;
+                updateHistoryButtons();
+            });
+        }
+
+        // Capture state on any canvas modification
+        ['object:added','object:modified','object:removed','object:moved','object:scaled','object:rotated']
+            .forEach(evt => fabricCanvas.on(evt, saveHistory));
+
+        document.getElementById('undo').addEventListener('click', () => {
+            if (historyIndex > 0) loadHistory(historyIndex - 1);
+        });
+        document.getElementById('redo').addEventListener('click', () => {
+            if (historyIndex < historyStack.length - 1) loadHistory(historyIndex + 1);
+        });
+        document.getElementById('reset-design').addEventListener('click', () => {
+            if (confirm('¿Restablecer el diseño al estado original?')) {
+                const toRemove = fabricCanvas.getObjects().filter(o => o.name !== 'shirtBackground');
+                toRemove.forEach(o => fabricCanvas.remove(o));
+                state.layers = [];
+                updateLayerDisplay();
+                fabricCanvas.renderAll();
+                saveHistory();
+            }
+        });
+
+        // Export
+        // Download removed
+
+        // ══════════════════════════════════════════
+        // GUARDAR DISEÑO + MIS DISEÑOS (cookies)
+        // ══════════════════════════════════════════
+        const DESIGNS_KEY = 'doussoux_saved_designs';
+
+        function getSavedDesigns() {
+            try {
+                const raw = localStorage.getItem(DESIGNS_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch(e) { return []; }
+        }
+
+        function saveDesigns(designs) {
+            try { localStorage.setItem(DESIGNS_KEY, JSON.stringify(designs)); } catch(e) {}
+        }
+
+        function getThumbDataUrl() {
+            return fabricCanvas.toDataURL({ format: 'png', quality: 0.7, multiplier: 1 });
+        }
+
+        // ── Open Guardar modal
+        let pendingSaveMode = null; // 'new' or 'replace'
+        let pendingDesignId = null;
+
+        function openSaveModal(designId) {
+            const modal = document.getElementById('modal-save');
+            const fields = document.getElementById('save-fields');
+            const actions = document.getElementById('save-actions');
+            const okActions = document.getElementById('save-ok-actions');
+            const notice = document.getElementById('save-cookie-notice');
+
+            // Reset
+            fields.style.display = '';
+            actions.style.display = '';
+            okActions.style.display = 'none';
+            notice.style.display = 'none';
+            document.getElementById('design-name').value = '';
+            document.getElementById('design-tags').value = '';
+
+            // Draw thumb
+            const thumb = document.getElementById('save-thumb-canvas');
+            const dataUrl = getThumbDataUrl();
+            const img = new Image();
+            img.onload = () => {
+                thumb.width = 300; thumb.height = 180;
+                const ctx = thumb.getContext('2d');
+                ctx.clearRect(0,0,300,180);
+                const scale = Math.min(300/img.width, 180/img.height);
+                const w = img.width*scale, h = img.height*scale;
+                ctx.drawImage(img, (300-w)/2, (180-h)/2, w, h);
+            };
+            img.src = dataUrl;
+
+            pendingDesignId = designId || null;
+            pendingSaveMode = null;
+            modal.style.display = 'flex';
+        }
+
+        document.getElementById('save-as-copy-btn').addEventListener('click', () => {
+            pendingSaveMode = 'new';
+            doSaveDesign();
+        });
+
+        document.getElementById('save-replace-btn').addEventListener('click', () => {
+            pendingSaveMode = 'replace';
+            doSaveDesign();
+        });
+
+        function doSaveDesign() {
+            const name = document.getElementById('design-name').value.trim() || 'Diseño sin nombre';
+            const tags = document.getElementById('design-tags').value.trim();
+            const thumb = getThumbDataUrl();
+            const designs = getSavedDesigns();
+            const id = pendingDesignId && pendingSaveMode === 'replace' ? pendingDesignId : `design_${Date.now()}`;
+
+            const entry = { id, name, tags, thumb, savedAt: Date.now(), view: state.currentView };
+
+            if (pendingSaveMode === 'replace' && pendingDesignId) {
+                const idx = designs.findIndex(d => d.id === pendingDesignId);
+                if (idx > -1) designs[idx] = entry; else designs.push(entry);
+            } else {
+                designs.push(entry);
+            }
+            saveDesigns(designs);
+
+            // Show cookie notice then OK
+            document.getElementById('save-fields').style.display = 'none';
+            document.getElementById('save-actions').style.display = 'none';
+            document.getElementById('save-cookie-notice').style.display = 'flex';
+            document.getElementById('save-ok-actions').style.display = 'flex';
+        }
+
+        document.getElementById('save-ok-btn').addEventListener('click', () => {
+            document.getElementById('modal-save').style.display = 'none';
+        });
+
+        document.getElementById('close-save-modal').addEventListener('click', () => {
+            document.getElementById('modal-save').style.display = 'none';
+        });
+
+        // ── Open Mis diseños modal
+        function openMyDesigns() {
+            renderMyDesigns();
+            document.getElementById('modal-mydesigns').style.display = 'flex';
+        }
+
+        function renderMyDesigns(filter) {
+            const designs = getSavedDesigns();
+            const grid = document.getElementById('mydesigns-grid');
+            grid.innerHTML = '';
+            const filtered = filter ? designs.filter(d => d.name.toLowerCase().includes(filter.toLowerCase())) : designs;
+
+            if (!filtered.length) {
+                grid.innerHTML = '<div class="mydesigns-empty">No tienes diseños guardados aún.</div>';
+                return;
+            }
+
+            filtered.forEach(d => {
+                const card = document.createElement('div');
+                card.className = 'design-card';
+                card.innerHTML = `
+                    <div class="design-card-thumb">
+                        <img src="${d.thumb}" alt="${d.name}">
+                    </div>
+                    <div class="design-card-name">${d.name}</div>
+                    <button class="design-card-delete" data-id="${d.id}" title="Eliminar">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/>
+                        </svg>
+                    </button>
+                `;
+                card.querySelector('.design-card-delete').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const designs2 = getSavedDesigns().filter(x => x.id !== d.id);
+                    saveDesigns(designs2);
+                    renderMyDesigns(document.getElementById('designs-search').value);
+                });
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('designs-search').addEventListener('input', (e) => {
+            renderMyDesigns(e.target.value);
+        });
+
+        document.getElementById('close-mydesigns').addEventListener('click', () => {
+            document.getElementById('modal-mydesigns').style.display = 'none';
+        });
+
+        document.getElementById('close-mydesigns2').addEventListener('click', () => {
+            document.getElementById('modal-mydesigns').style.display = 'none';
+        });
+
+        document.getElementById('my-designs-btn').addEventListener('click', () => {
+            openMyDesigns();
+        });
+
+        document.getElementById('open-save-from-designs').addEventListener('click', () => {
+            document.getElementById('modal-mydesigns').style.display = 'none';
+            openSaveModal(null);
+        });
+
+        document.getElementById('save-design-btn').addEventListener('click', () => {
+            openSaveModal(null);
+        });
+
+
+        // Share
+        document.getElementById('share-btn').addEventListener('click', function() {
+            const p = PRODUCTS[state.currentProductIndex];
+            if (navigator.share) {
+                navigator.share({ title: 'Mi diseño DOUSSOUX', text: `¡Mira mi diseño de ${p.name}!`, url: window.location.href });
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('Link copiado al portapapeles');
+            }
+        });
+
+        // ── 3D Preview: 3-state expand ──
+        let preview3dState = 0;
+        const preview3d = document.getElementById('preview-3d');
+        const sidebar = document.querySelector('.left-sidebar');
+        let modal3dRenderer = null;
+        let modal3dAnimId = null;
+
+        document.getElementById('expand-3d').addEventListener('click', () => {
+            preview3dState = (preview3dState + 1) % 3;
+            applyPreview3dState();
+        });
+
+        // Modal 3D buttons
+        document.getElementById('modal-3d-compress').addEventListener('click', () => {
+            preview3dState = 1;
+            applyPreview3dState();
+        });
+
+        document.getElementById('modal-3d-close').addEventListener('click', () => {
+            preview3dState = 0;
+            applyPreview3dState();
+        });
+
+        function applyPreview3dState() {
+            const modal3d = document.getElementById('modal-3d');
+            const closeMediumBtn = document.getElementById('close-3d-medium');
+
+            sidebar.classList.remove('expand-medium');
+            preview3d.classList.remove('expand-fullscreen');
+            modal3d.classList.remove('active');
+            closeMediumBtn.style.display = 'none';
+
+            // Destroy modal renderer if open
+            if (modal3dRenderer) {
+                cancelAnimationFrame(modal3dAnimId);
+                const container = document.getElementById('modal-3d-canvas-container');
+                while (container.firstChild) container.removeChild(container.firstChild);
+                modal3dRenderer.dispose();
+                modal3dRenderer = null;
+            }
+
+            if (preview3dState === 1) {
+                // Medium: expand sidebar
+                sidebar.classList.add('expand-medium');
+                closeMediumBtn.style.display = 'block';
+                setTimeout(() => {
+                    if (renderer) {
+                        renderer.setSize(preview3d.clientWidth, preview3d.clientHeight);
+                        camera.aspect = preview3d.clientWidth / preview3d.clientHeight;
+                        camera.updateProjectionMatrix();
+                    }
+                }, 320);
+            } else if (preview3dState === 2) {
+                // Fullscreen: open modal with fresh renderer
+                modal3d.classList.add('active');
+                const container = document.getElementById('modal-3d-canvas-container');
+                const w = window.innerWidth;
+                const h = window.innerHeight;
+
+                const fsScene = new THREE.Scene();
+                fsScene.background = new THREE.Color(0xf5f5f5);
+
+                const fsCamera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+                fsCamera.position.z = 3;
+
+                modal3dRenderer = new THREE.WebGLRenderer({ antialias: true });
+                modal3dRenderer.setSize(w, h);
+                container.appendChild(modal3dRenderer.domElement);
+
+                const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+                fsScene.add(ambient);
+                const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+                dir.position.set(1, 1, 1);
+                fsScene.add(dir);
+
+                const geo = new THREE.CylinderGeometry(0.8, 1, 2, 32);
+                const mat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.8, metalness: 0.1 });
+                const fsMesh = new THREE.Mesh(geo, mat);
+                fsScene.add(fsMesh);
+
+                // Apply current shirt texture if available
+                const texCanvas = fabricCanvas.toCanvasElement();
+                const tex = new THREE.CanvasTexture(texCanvas);
+                fsMesh.material = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 });
+
+                let isDragging = false, prevX = 0;
+                container.addEventListener('mousedown', () => isDragging = true);
+                container.addEventListener('mouseup', () => isDragging = false);
+                container.addEventListener('mousemove', e => {
+                    if (isDragging) fsMesh.rotation.y += (e.clientX - prevX) * 0.01;
+                    prevX = e.clientX;
+                });
+
+                function animateFs() {
+                    modal3dAnimId = requestAnimationFrame(animateFs);
+                    fsMesh.rotation.y += 0.005;
+                    modal3dRenderer.render(fsScene, fsCamera);
+                }
+                animateFs();
+            } else {
+                // State 0: reset sidebar size, resize small renderer
+                setTimeout(() => {
+                    if (renderer) {
+                        renderer.setSize(preview3d.clientWidth, preview3d.clientHeight);
+                        camera.aspect = preview3d.clientWidth / preview3d.clientHeight;
+                        camera.updateProjectionMatrix();
+                    }
+                }, 50);
+            }
+        }
+
+        document.getElementById('close-3d-medium').addEventListener('click', () => {
+            preview3dState = 0;
+            applyPreview3dState();
+        });
+
+        // Fullscreen button — full page (removes browser chrome)
+        document.getElementById('fullscreen-btn').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen?.();
+            } else {
+                document.exitFullscreen?.();
+            }
+        });
+
+        // Canvas selection events
+        fabricCanvas.on('selection:created', e => {
+            const obj = e.selected[0];
+            const layer = state.layers.find(l => l.fabricObject === obj);
+            if (layer) {
+                state.selectedLayer = layer.id;
+                updateLayerDisplay();
+                if (layer.type === 'text' || layer.type === 'number') {
+                    document.getElementById('text-editor').classList.add('active');
+                    document.getElementById('text-content').value = obj.text;
+                }
+            }
+        });
+
+        fabricCanvas.on('selection:cleared', () => {
+            state.selectedLayer = null;
+            updateLayerDisplay();
+            document.getElementById('text-editor').classList.remove('active');
+        });
+
+        document.getElementById('text-content').addEventListener('input', e => {
+            const obj = fabricCanvas.getActiveObject();
+            if (obj?.type === 'i-text') { obj.set('text', e.target.value); fabricCanvas.renderAll(); updateLayerDisplay(); }
+        });
+
+        // ══════════════════════════════════════════
+        // THEME TOGGLE
+        // ══════════════════════════════════════════
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            state.isLightMode = !state.isLightMode;
+            document.body.classList.toggle('dark-mode', !state.isLightMode);
+            document.getElementById('theme-label').textContent = state.isLightMode ? 'LIGHT' : 'DARK';
+            if (scene) scene.background = new THREE.Color(state.isLightMode ? 0xf0f0f0 : 0x1a1a1a);
+        });
+
+        // ══════════════════════════════════════════
+        // SHOPIFY CONFIG
+        // ══════════════════════════════════════════
+        const SHOPIFY_CONFIG = {
+            storeDomain: 'dsxhockey.myshopify.com',
+            productHandle: 'camiseta-personalizada',
+            variantIds: {
+                'jersey-corporate': '12345678901234',
+                'polo-classic': '12345678901235',
+                'hoodie-premium': '12345678901236'
+            }
+        };
+
+        document.getElementById('add-to-cart').addEventListener('click', async function() {
+            try {
+                const designImage = fabricCanvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
+                const currentProduct = PRODUCTS[state.currentProductIndex];
+                const variantId = SHOPIFY_CONFIG.variantIds[currentProduct.id];
+                const formData = {
+                    items: [{
+                        id: variantId, quantity: 1,
+                        properties: { '_Diseño': 'Personalizado', '_Producto': currentProduct.name, '_Vista': state.currentView }
+                    }]
+                };
+                const response = await fetch('/cart/add.js', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData)
+                });
+                if (response.ok) window.location.href = '/cart';
+                else throw new Error();
+            } catch {
+                alert('Diseño listo. Te llevamos al producto.');
+                window.location.href = `/products/${SHOPIFY_CONFIG.productHandle}`;
+            }
+        });
+
+        // ══════════════════════════════════════════
+        // INIT
+        // ══════════════════════════════════════════
+        window.addEventListener('load', () => {
+            init3DPreview('preview-3d');
+        });
+
+        window.selectLayer = selectLayer;
+        window.removeLayer = removeLayer;
+        window.updateLayerContent = updateLayerContent;
+        window.previousProduct = previousProduct;
+        window.nextProduct = nextProduct;
+    </script>
+
+</body>
+</html>
